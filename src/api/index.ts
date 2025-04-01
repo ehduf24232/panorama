@@ -4,7 +4,7 @@ const API_BASE_URL = 'https://panorama-backend.onrender.com';
 
 const api = axios.create({
   baseURL: API_BASE_URL,
-  withCredentials: false,
+  withCredentials: true,
   headers: {
     'Content-Type': 'application/json'
   }

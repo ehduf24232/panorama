@@ -24,17 +24,25 @@ app.use((req, res, next) => {
   next();
 });
 
-// CORS 설정
+// CORS 설정을 가장 먼저 적용
 app.use(cors({
-  origin: '*',
+  origin: 'https://realestate-panorama.netlify.app',
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
-  credentials: false
+  credentials: true,
+  optionsSuccessStatus: 200
 }));
 
 // 기본 미들웨어
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// API 라우트 설정
+app.use('/api/neighborhoods', neighborhoodRouter);
+app.use('/api/buildings', buildingRouter);
+app.use('/api/rooms', roomRouter);
+app.use('/api/consultations', consultationRouter);
+app.use('/api/settings', settingsRouter);
 
 // 정적 파일 제공 설정
 const uploadsDir = path.join(__dirname, '../uploads');
@@ -46,37 +54,9 @@ if (!fs.existsSync(uploadsDir)) {
   console.log('[정적 파일 설정] 업로드 디렉토리 생성됨');
 }
 
-// 정적 파일 요청 로깅 미들웨어
-app.use((req, res, next) => {
-  if (req.url.startsWith('/uploads')) {
-    const filePath = path.join(uploadsDir, req.url.replace('/uploads', ''));
-    console.log('[정적 파일 요청]', {
-      요청URL: req.url,
-      전체경로: filePath,
-      존재여부: fs.existsSync(filePath)
-    });
-  }
-  next();
-});
-
 // 정적 파일 제공
 app.use('/uploads', express.static(uploadsDir));
 app.use(express.static(path.join(__dirname, '../../client/build')));
-
-// 모든 요청에 대한 CORS 헤더 설정
-app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', '*');
-  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
-  next();
-});
-
-// API 라우트 설정
-app.use('/api/neighborhoods', neighborhoodRouter);
-app.use('/api/buildings', buildingRouter);
-app.use('/api/rooms', roomRouter);
-app.use('/api/consultations', consultationRouter);
-app.use('/api/settings', settingsRouter);
 
 // 모든 요청을 React 앱으로 전달
 app.get('*', (req, res) => {
