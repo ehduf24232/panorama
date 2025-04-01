@@ -29,7 +29,8 @@ app.use(cors({
   origin: ['http://localhost:3000', 'https://realestate-panorama.netlify.app'],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
-  credentials: false
+  credentials: false,
+  optionsSuccessStatus: 200
 }));
 
 // 기본 미들웨어
