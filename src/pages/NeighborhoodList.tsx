@@ -5,6 +5,12 @@ import axios from 'axios';
 import CustomLinkButton from '../components/CustomLinkButton';
 import { Link } from 'react-router-dom';
 import HomeButton from '../components/HomeButton';
+import api from '../api';
+
+// API 기본 URL 설정
+const API_BASE_URL = process.env.NODE_ENV === 'production'
+  ? 'https://panorama-backend.onrender.com'
+  : 'http://localhost:5000';
 
 const GlobalStyle = createGlobalStyle`
   body {
@@ -184,7 +190,7 @@ const NeighborhoodList = () => {
   useEffect(() => {
     const fetchNeighborhoods = async () => {
       try {
-        const response = await axios.get('http://localhost:5000/api/neighborhoods');
+        const response = await api.get('/api/neighborhoods');
         setNeighborhoods(response.data);
       } catch (error) {
         console.error('동네 목록을 불러오는데 실패했습니다:', error);
@@ -213,7 +219,7 @@ const NeighborhoodList = () => {
           {neighborhoods.map((neighborhood) => (
             <NeighborhoodCard key={neighborhood._id} to={`/neighborhoods/${neighborhood._id}/buildings`}>
               <NeighborhoodImage 
-                src={`http://localhost:5000${neighborhood.imageUrl}`} 
+                src={`${API_BASE_URL}${neighborhood.imageUrl}`} 
                 alt={neighborhood.name}
                 onError={(e) => {
                   console.error('이미지 로드 실패:', neighborhood.name);
