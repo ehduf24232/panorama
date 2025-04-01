@@ -1,0 +1,15 @@
+[
+  {
+    "_id": "67e8d3e487e44ed9f6abdd0c",
+    "buildingId": "67e8d3e487e44ed9f6abdd0a",
+    "name": "1층 101호",
+    "number": "101",
+    "size": 30,
+    "price": 50000000,
+    "floor": 1,
+    "description": "1층에 위치한 방",
+    "imageUrl": "/uploads/rooms/default.jpg",
+    "panoramaUrl": "/uploads/panoramas/default.jpg",
+    "__v": 0
+  }
+]

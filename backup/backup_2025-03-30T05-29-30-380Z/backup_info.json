@@ -1,0 +1,11 @@
+{
+  "timestamp": "2025-03-30T05:29:30.424Z",
+  "database": "panorama",
+  "collections": [
+    "settings",
+    "neighborhoods",
+    "buildings",
+    "rooms"
+  ],
+  "uploads": true
+}

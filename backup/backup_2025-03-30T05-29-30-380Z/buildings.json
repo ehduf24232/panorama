@@ -1,0 +1,12 @@
+[
+  {
+    "_id": "67e8d3e487e44ed9f6abdd0a",
+    "name": "강남 빌라",
+    "neighborhoodId": "67e8d3e487e44ed9f6abdd08",
+    "address": "서울특별시 강남구 테스트로 123",
+    "floors": 5,
+    "description": "강남구에 위치한 빌라",
+    "imageUrl": "/uploads/buildings/default.jpg",
+    "__v": 0
+  }
+]
