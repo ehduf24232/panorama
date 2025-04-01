@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import axios from 'axios';
+import api from '../api';
 
 // 타입 정의
 export interface Neighborhood {
@@ -35,49 +35,6 @@ export interface Room {
   }[];
 }
 
-// axios 기본 설정
-axios.defaults.baseURL = 'http://localhost:5000';
-axios.defaults.timeout = 5000;
-axios.defaults.headers.common['Accept'] = 'application/json';
-axios.defaults.headers.post['Content-Type'] = 'application/json';
-
-// 요청 인터셉터 추가
-axios.interceptors.request.use(
-  (config) => {
-    console.log('API 요청:', {
-      url: config.url,
-      method: config.method,
-      headers: config.headers
-    });
-    return config;
-  },
-  (error) => {
-    console.error('API 요청 오류:', error);
-    return Promise.reject(error);
-  }
-);
-
-// 응답 인터셉터 추가
-axios.interceptors.response.use(
-  (response) => {
-    console.log('API 응답:', {
-      url: response.config.url,
-      status: response.status,
-      data: response.data
-    });
-    return response;
-  },
-  (error) => {
-    console.error('API 응답 오류:', {
-      url: error.config?.url,
-      status: error.response?.status,
-      message: error.message,
-      data: error.response?.data
-    });
-    return Promise.reject(error);
-  }
-);
-
 interface DataContextType {
   neighborhoods: Neighborhood[];
   buildings: Building[];
@@ -108,7 +65,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       // 각 API 호출을 개별적으로 처리
       try {
-        const neighborhoodsRes = await axios.get('/api/neighborhoods');
+        const neighborhoodsRes = await api.get('/api/neighborhoods');
         console.log('동네 데이터 응답:', neighborhoodsRes.data);
         setNeighborhoods(neighborhoodsRes.data);
       } catch (error) {
@@ -116,7 +73,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
 
       try {
-        const buildingsRes = await axios.get('/api/buildings');
+        const buildingsRes = await api.get('/api/buildings');
         console.log('건물 데이터 응답:', buildingsRes.data);
         setBuildings(buildingsRes.data);
       } catch (error) {
@@ -124,7 +81,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
 
       try {
-        const roomsRes = await axios.get('/api/rooms');
+        const roomsRes = await api.get('/api/rooms');
         console.log('호실 데이터 응답:', roomsRes.data);
         setRooms(roomsRes.data);
       } catch (error) {
@@ -133,22 +90,19 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     } catch (error) {
       console.error('전체 데이터 로딩 중 오류 발생:', error);
-      if (axios.isAxiosError(error)) {
-        console.error('응답 데이터:', error.response?.data);
-      }
     }
   };
 
   const fetchBuildingsByNeighborhood = useCallback(async (neighborhoodId: string) => {
     try {
       console.log('[건물 데이터 요청]', { neighborhoodId });
-      const response = await axios.get(`/api/buildings/neighborhood/${neighborhoodId}`);
+      const response = await api.get(`/api/buildings/neighborhood/${neighborhoodId}`);
       console.log('[건물 데이터 응답]', response.data);
       setBuildings(response.data);
 
       // 해당 건물들의 호실 정보도 함께 가져옴
       const buildingIds = response.data.map((building: Building) => building._id);
-      const roomsResponse = await axios.get(`/api/rooms/buildings/${buildingIds.join(',')}`);
+      const roomsResponse = await api.get(`/api/rooms/buildings/${buildingIds.join(',')}`);
       console.log('[호실 데이터 응답]', roomsResponse.data);
       setRooms(roomsResponse.data);
     } catch (error) {
@@ -158,7 +112,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const addNeighborhood = async (formData: FormData) => {
     try {
-      const response = await axios.post('/api/neighborhoods', formData, {
+      const response = await api.post('/api/neighborhoods', formData, {
         headers: {
           'Content-Type': 'multipart/form-data'
         }
@@ -172,7 +126,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const deleteNeighborhood = async (id: string) => {
     try {
-      await axios.delete(`/api/neighborhoods/${id}`);
+      await api.delete(`/api/neighborhoods/${id}`);
       setNeighborhoods(neighborhoods.filter(n => n._id !== id));
       setBuildings(buildings.filter(b => b.neighborhoodId !== id));
       setRooms(rooms.filter(r => {
@@ -187,7 +141,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const addBuilding = async (formData: FormData) => {
     try {
-      const response = await axios.post('/api/buildings', formData, {
+      const response = await api.post('/api/buildings', formData, {
         headers: {
           'Content-Type': 'multipart/form-data'
         }
@@ -201,7 +155,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const deleteBuilding = async (id: string) => {
     try {
-      await axios.delete(`/api/buildings/${id}`);
+      await api.delete(`/api/buildings/${id}`);
       setBuildings(buildings.filter(b => b._id !== id));
       setRooms(rooms.filter(r => r.buildingId !== id));
     } catch (error) {
@@ -212,7 +166,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const addRoom = async (formData: FormData) => {
     try {
-      const response = await axios.post('/api/rooms', formData, {
+      const response = await api.post('/api/rooms', formData, {
         headers: {
           'Content-Type': 'multipart/form-data'
         }
@@ -226,7 +180,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const deleteRoom = async (id: string) => {
     try {
-      await axios.delete(`/api/rooms/${id}`);
+      await api.delete(`/api/rooms/${id}`);
       setRooms(rooms.filter(r => r._id !== id));
     } catch (error) {
       console.error('호실 삭제 중 오류 발생:', error);
