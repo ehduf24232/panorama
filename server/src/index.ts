@@ -14,9 +14,8 @@ import settingsRouter from './routes/settings';
 dotenv.config();
 
 const app = express();
-const PORT = 5000;
+const PORT = process.env.PORT || 5000;
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/panorama';
-const CORS_ORIGIN = process.env.CORS_ORIGIN || 'http://localhost:3000';
 
 // 디버깅을 위한 미들웨어
 app.use((req, res, next) => {
@@ -24,14 +23,16 @@ app.use((req, res, next) => {
   next();
 });
 
-// CORS 설정을 가장 먼저 적용
-app.use(cors({
-  origin: 'https://realestate-panorama.netlify.app',
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-  credentials: true,
-  optionsSuccessStatus: 200
-}));
+// 모든 요청에 대해 CORS 헤더 추가
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(200);
+  }
+  next();
+});
 
 // 기본 미들웨어
 app.use(express.json());
@@ -61,11 +62,6 @@ app.use(express.static(path.join(__dirname, '../../client/build')));
 // 모든 요청을 React 앱으로 전달
 app.get('*', (req, res) => {
   res.sendFile(path.join(path.join(__dirname, '../../client/build'), 'index.html'));
-});
-
-// 루트 경로 처리
-app.get('/', (req, res) => {
-  res.send('서버가 정상적으로 실행 중입니다.');
 });
 
 // 에러 핸들링 미들웨어
