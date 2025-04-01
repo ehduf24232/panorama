@@ -429,6 +429,7 @@ const AdminPage: React.FC = () => {
         await api.put(`/rooms/${editingRoomId}`, formData, config);
         setMessage('호실이 성공적으로 수정되었습니다.');
       } else {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const response = await api.post('/rooms', formData, config);
         console.log('[호실 등록 응답]:', response.data);
         setMessage('호실이 성공적으로 등록되었습니다.');
