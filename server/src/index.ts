@@ -26,11 +26,10 @@ app.use((req, res, next) => {
 
 // CORS 설정
 app.use(cors({
-  origin: ['http://localhost:3000', 'https://realestate-panorama.netlify.app'],
+  origin: '*',
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
-  credentials: false,
-  optionsSuccessStatus: 200
+  credentials: false
 }));
 
 // 기본 미들웨어
@@ -64,9 +63,9 @@ app.use((req, res, next) => {
 app.use('/uploads', express.static(uploadsDir));
 app.use(express.static(path.join(__dirname, '../../client/build')));
 
-// 추가 CORS 헤더 설정
+// 모든 요청에 대한 CORS 헤더 설정
 app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', 'https://realestate-panorama.netlify.app');
+  res.header('Access-Control-Allow-Origin', '*');
   res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
   res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
   next();
