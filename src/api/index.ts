@@ -6,7 +6,11 @@ const API_BASE_URL = process.env.NODE_ENV === 'production'
 
 const api = axios.create({
   baseURL: API_BASE_URL,
-  withCredentials: true
+  withCredentials: false,
+  headers: {
+    'Content-Type': 'application/json',
+    'Access-Control-Allow-Origin': '*'
+  }
 });
 
 export default api; 
