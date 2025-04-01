@@ -15,7 +15,7 @@ const Container = styled.div`
   margin: 0 auto;
 
   @media (max-width: 768px) {
-    padding: 4rem 1rem 2rem 1rem;
+    padding: 6rem 1rem 2rem 1rem;
   }
 `;
 
@@ -23,6 +23,10 @@ const Title = styled.h1`
   text-align: center;
   margin-bottom: 2rem;
   color: #333;
+
+  @media (max-width: 768px) {
+    margin-top: 2rem;
+  }
 `;
 
 const Section = styled.section`
