@@ -19,15 +19,16 @@ const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/panora
 
 // CORS 설정
 app.use(cors({
-  origin: ['https://realestate-panorama.netlify.app'],
+  origin: '*',
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
-  credentials: true
+  credentials: false
 }));
 
 // 디버깅을 위한 미들웨어
 app.use((req, res, next) => {
   console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
+  console.log('요청 헤더:', req.headers);
   next();
 });
 
@@ -58,7 +59,7 @@ app.use(express.static(path.join(__dirname, '../../client/build')));
 
 // 모든 요청을 React 앱으로 전달
 app.get('*', (req, res) => {
-  res.sendFile(path.join(path.join(__dirname, '../../client/build'), 'index.html'));
+  res.sendFile(path.join(__dirname, '../../client/build/index.html'));
 });
 
 // 에러 핸들링 미들웨어
@@ -69,11 +70,13 @@ app.use((err: any, req: express.Request, res: express.Response, next: express.Ne
   });
 });
 
+// 서버 시작
 mongoose.connect(MONGODB_URI)
   .then(() => {
     console.log('MongoDB에 연결되었습니다.');
-    app.listen(PORT, () => {
-      console.log(`서버가 포트 ${PORT}에서 실행 중입니다.`);
+    const port = Number(PORT);
+    app.listen(port, '0.0.0.0', () => {
+      console.log(`서버가 포트 ${port}에서 실행 중입니다.`);
     });
   })
   .catch((error) => {
