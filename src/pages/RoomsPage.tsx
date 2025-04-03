@@ -61,10 +61,11 @@ const Container = styled.div`
 `;
 
 const ContentWrapper = styled.div`
-  position: relative;
-  z-index: 10;
-  width: 100%;
+  padding: 120px 20px 20px;
   max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
+  box-sizing: border-box;
 `;
 
 const Title = styled.h1`
