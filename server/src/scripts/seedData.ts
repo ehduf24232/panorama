@@ -9,7 +9,10 @@ import path from 'path';
 
 dotenv.config();
 
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/panorama';
+const MONGODB_URI = process.env.MONGODB_URI;
+if (!MONGODB_URI) {
+  throw new Error('MONGODB_URI 환경 변수가 설정되지 않았습니다.');
+}
 
 let gfs: GridFSBucket;
 
@@ -89,4 +92,23 @@ async function seedData() {
   }
 }
 
+// MongoDB 연결
+mongoose.connect(MONGODB_URI)
+  .then(() => {
+    console.log('MongoDB에 연결되었습니다.');
+    
+    // GridFS 버킷 초기화
+    if (mongoose.connection.db) {
+      gfs = new GridFSBucket(mongoose.connection.db, {
+        bucketName: 'uploads'
+      });
+      console.log('GridFS 버킷이 초기화되었습니다.');
+    }
+  })
+  .catch((error) => {
+    console.error('MongoDB 연결 실패:', error);
+    process.exit(1);
+  });
+
+seedData(); 
 seedData(); 

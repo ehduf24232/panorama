@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
 import { Link as LinkIcon } from '@mui/icons-material';
+import api from '../api';
 
 const StyledButton = styled.a`
   position: fixed;
@@ -58,8 +59,8 @@ const CustomLinkButton: React.FC = () => {
   useEffect(() => {
     const fetchSettings = async () => {
       try {
-        const response = await fetch('http://localhost:5000/api/settings');
-        const data = await response.json();
+        const response = await api.get('/api/settings');
+        const data = response.data;
         if (data.customLinkUrl && data.customLinkText) {
           setSettings(data);
         }
