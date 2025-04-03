@@ -55,11 +55,34 @@ if (!fs.existsSync(uploadsDir)) {
 // 정적 파일 제공
 app.use('/uploads', express.static(uploadsDir));
 
+// 루트 경로 핸들러
+app.get('/', (req, res) => {
+  res.json({
+    message: 'Panorama Backend API Server',
+    status: 'running',
+    endpoints: {
+      neighborhoods: '/api/neighborhoods',
+      buildings: '/api/buildings',
+      rooms: '/api/rooms',
+      consultations: '/api/consultations',
+      settings: '/api/settings'
+    }
+  });
+});
+
+// 에러 핸들링 미들웨어
+app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
+  console.error('[에러]', err);
+  res.status(err.status || 500).json({
+    message: err.message || '서버 에러가 발생했습니다.'
+  });
+});
+
 // MongoDB 연결 및 서버 시작
 mongoose.connect(MONGODB_URI)
   .then(() => {
     console.log('MongoDB에 연결되었습니다.');
-    const server = app.listen(PORT, () => {
+    app.listen(Number(PORT), '0.0.0.0', () => {
       console.log(`서버가 포트 ${PORT}에서 실행 중입니다.`);
     });
   })
