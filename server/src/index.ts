@@ -2,8 +2,7 @@ import express from 'express';
 import mongoose from 'mongoose';
 import cors from 'cors';
 import dotenv from 'dotenv';
-import path from 'path';
-import fs from 'fs';
+import { GridFSBucket } from 'mongodb';
 
 import neighborhoodRouter from './routes/neighborhoods';
 import buildingRouter from './routes/buildings';
@@ -46,6 +45,33 @@ app.use((req, res, next) => {
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// MongoDB 연결
+let gfs: GridFSBucket;
+
+mongoose.connect(MONGODB_URI)
+  .then(() => {
+    console.log('MongoDB에 연결되었습니다.');
+    
+    // GridFS 설정
+    const conn = mongoose.connection;
+    if (!conn.db) {
+      throw new Error('MongoDB 연결이 초기화되지 않았습니다.');
+    }
+    
+    gfs = new GridFSBucket(conn.db, {
+      bucketName: 'uploads'
+    });
+    
+    console.log('GridFS 버킷이 초기화되었습니다.');
+    
+    app.listen(Number(PORT), '0.0.0.0', () => {
+      console.log(`서버가 포트 ${PORT}에서 실행 중입니다.`);
+    });
+  })
+  .catch((error) => {
+    console.error('MongoDB 연결 에러:', error);
+  });
+
 // API 라우트 설정
 app.use('/api/neighborhoods', neighborhoodRouter);
 app.use('/api/buildings', buildingRouter);
@@ -53,18 +79,21 @@ app.use('/api/rooms', roomRouter);
 app.use('/api/consultations', consultationRouter);
 app.use('/api/settings', settingsRouter);
 
-// 정적 파일 제공 설정
-const uploadsDir = path.join(__dirname, '../uploads');
-console.log('[정적 파일 설정] 업로드 디렉토리 경로:', uploadsDir);
+// 이미지 조회 라우트
+app.get('/api/images/:filename', async (req, res) => {
+  try {
+    const file = await gfs.find({ filename: req.params.filename }).toArray();
+    if (!file || file.length === 0) {
+      return res.status(404).json({ message: '이미지를 찾을 수 없습니다.' });
+    }
 
-// 업로드 디렉토리 생성
-if (!fs.existsSync(uploadsDir)) {
-  fs.mkdirSync(uploadsDir, { recursive: true });
-  console.log('[정적 파일 설정] 업로드 디렉토리 생성됨');
-}
-
-// 정적 파일 제공
-app.use('/uploads', express.static(uploadsDir));
+    const readStream = gfs.openDownloadStream(file[0]._id);
+    readStream.pipe(res);
+  } catch (error) {
+    console.error('[이미지 조회 에러]:', error);
+    res.status(500).json({ message: '이미지 조회에 실패했습니다.' });
+  }
+});
 
 // 루트 경로 핸들러
 app.get('/', (req, res) => {
@@ -89,14 +118,4 @@ app.use((err: any, req: express.Request, res: express.Response, next: express.Ne
   });
 });
 
-// MongoDB 연결 및 서버 시작
-mongoose.connect(MONGODB_URI)
-  .then(() => {
-    console.log('MongoDB에 연결되었습니다.');
-    app.listen(Number(PORT), '0.0.0.0', () => {
-      console.log(`서버가 포트 ${PORT}에서 실행 중입니다.`);
-    });
-  })
-  .catch((error) => {
-    console.error('MongoDB 연결 실패:', error);
-  }); 
+export { gfs }; 

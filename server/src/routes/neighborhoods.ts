@@ -1,41 +1,27 @@
 import express from 'express';
-import multer from 'multer';
-import path from 'path';
-import fs from 'fs';
 import Neighborhood from '../models/Neighborhood';
+import multer from 'multer';
+import { GridFSBucket } from 'mongodb';
+import mongoose from 'mongoose';
+import { gfs } from '../index';
 import Building from '../models/Building';
 import Room from '../models/Room';
 
 const router = express.Router();
 
-// 이미지 저장을 위한 multer 설정
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    const uploadDir = path.join(__dirname, '../../uploads/neighborhoods');
-    if (!fs.existsSync(uploadDir)) {
-      fs.mkdirSync(uploadDir, { recursive: true });
-    }
-    console.log('[파일 업로드] 저장 경로:', uploadDir);
-    cb(null, uploadDir);
-  },
-  filename: (req, file, cb) => {
-    const filename = `${Date.now()}${path.extname(file.originalname)}`;
-    console.log('[파일 업로드] 파일명:', filename);
-    cb(null, filename);
-  }
-});
-
+// Multer 설정
+const storage = multer.memoryStorage();
 const upload = multer({ storage });
 
-// 모든 동네 조회
+// 동네 목록 조회
 router.get('/', async (req, res) => {
   try {
-    const neighborhoods = await Neighborhood.find().sort({ name: 1 });
+    const neighborhoods = await Neighborhood.find();
     console.log('[동네 조회] 결과:', neighborhoods);
     res.json(neighborhoods);
   } catch (error) {
-    console.error('[동네 조회 에러]', error);
-    res.status(500).json({ message: '동네 목록을 가져오는데 실패했습니다.' });
+    console.error('[동네 조회 에러]:', error);
+    res.status(500).json({ message: '동네 목록 조회에 실패했습니다.' });
   }
 });
 
@@ -43,14 +29,19 @@ router.get('/', async (req, res) => {
 router.post('/', upload.single('image'), async (req, res) => {
   try {
     const { name, description } = req.body;
-    const imageUrl = req.file ? `/uploads/neighborhoods/${req.file.filename}` : '';
-    
-    console.log('[동네 추가]', {
-      이름: name,
-      설명: description,
-      이미지URL: imageUrl,
-      파일정보: req.file
-    });
+    let imageUrl = '';
+
+    if (req.file) {
+      const filename = `${Date.now()}-${req.file.originalname}`;
+      const writeStream = gfs.openUploadStream(filename, {
+        contentType: req.file.mimetype
+      });
+
+      writeStream.write(req.file.buffer);
+      writeStream.end();
+
+      imageUrl = `/api/images/${filename}`;
+    }
 
     const neighborhood = new Neighborhood({
       name,
@@ -59,10 +50,49 @@ router.post('/', upload.single('image'), async (req, res) => {
     });
 
     await neighborhood.save();
+    console.log('[동네 추가]', {
+      '이름': name,
+      '설명': description,
+      '이미지URL': imageUrl
+    });
+
     res.status(201).json(neighborhood);
   } catch (error) {
-    console.error('[동네 추가 에러]', error);
+    console.error('[동네 추가 에러]:', error);
     res.status(500).json({ message: '동네 추가에 실패했습니다.' });
+  }
+});
+
+// 동네 수정
+router.put('/:id', upload.single('image'), async (req, res) => {
+  try {
+    const { name, description } = req.body;
+    const neighborhood = await Neighborhood.findById(req.params.id);
+
+    if (!neighborhood) {
+      return res.status(404).json({ message: '동네를 찾을 수 없습니다.' });
+    }
+
+    if (req.file) {
+      const filename = `${Date.now()}-${req.file.originalname}`;
+      const writeStream = gfs.openUploadStream(filename, {
+        contentType: req.file.mimetype
+      });
+
+      writeStream.write(req.file.buffer);
+      writeStream.end();
+
+      neighborhood.imageUrl = `/api/images/${filename}`;
+    }
+
+    neighborhood.name = name;
+    neighborhood.description = description;
+
+    await neighborhood.save();
+    res.json(neighborhood);
+  } catch (error) {
+    console.error('[동네 수정 에러]:', error);
+    res.status(500).json({ message: '동네 수정에 실패했습니다.' });
   }
 });
 
@@ -70,74 +100,75 @@ router.post('/', upload.single('image'), async (req, res) => {
 router.delete('/:id', async (req, res) => {
   try {
     const neighborhood = await Neighborhood.findById(req.params.id);
+
     if (!neighborhood) {
       return res.status(404).json({ message: '동네를 찾을 수 없습니다.' });
     }
 
-    // 이미지 파일 삭제
     if (neighborhood.imageUrl) {
-      const imagePath = path.join(__dirname, '../../', neighborhood.imageUrl);
-      if (fs.existsSync(imagePath)) {
-        fs.unlinkSync(imagePath);
+      const filename = neighborhood.imageUrl.split('/').pop();
+      if (filename) {
+        const files = await gfs.find({ filename }).toArray();
+        if (files.length > 0) {
+          await gfs.delete(files[0]._id);
+        }
       }
     }
 
-    // 관련된 건물들 찾기
-    const buildings = await Building.find({ neighborhoodId: req.params.id });
-
-    // 각 건물에 속한 방들 삭제
-    for (const building of buildings) {
-      await Room.deleteMany({ buildingId: building._id });
-    }
-
-    // 건물들 삭제
-    await Building.deleteMany({ neighborhoodId: req.params.id });
-
-    // 동네 삭제
     await neighborhood.deleteOne();
-
-    res.json({ message: '동네가 성공적으로 삭제되었습니다.' });
+    res.json({ message: '동네가 삭제되었습니다.' });
   } catch (error) {
+    console.error('[동네 삭제 에러]:', error);
     res.status(500).json({ message: '동네 삭제에 실패했습니다.' });
   }
 });
 
-// 동네 수정
-router.put('/:id', upload.single('image'), async (req, res) => {
+// 이미지 조회
+router.get('/images/:filename', async (req, res) => {
+  try {
+    const file = await gfs.find({ filename: req.params.filename }).toArray();
+    if (!file || file.length === 0) {
+      return res.status(404).json({ message: '이미지를 찾을 수 없습니다.' });
+    }
+
+    const readStream = gfs.openDownloadStream(file[0]._id);
+    readStream.pipe(res);
+  } catch (error) {
+    console.error('[이미지 조회 에러]:', error);
+    res.status(500).json({ message: '이미지 조회에 실패했습니다.' });
+  }
+});
+
+// 관련된 건물들 조회
+router.get('/:id/buildings', async (req, res) => {
   try {
     const neighborhood = await Neighborhood.findById(req.params.id);
     if (!neighborhood) {
       return res.status(404).json({ message: '동네를 찾을 수 없습니다.' });
     }
 
-    const updateData: any = {
-      name: req.body.name,
-      description: req.body.description
-    };
+    const buildings = await Building.find({ neighborhoodId: req.params.id });
+    res.json(buildings);
+  } catch (error) {
+    console.error('[건물 조회 에러]:', error);
+    res.status(500).json({ message: '건물 목록 조회에 실패했습니다.' });
+  }
+});
 
-    if (req.file) {
-      // 기존 이미지가 있다면 삭제
-      if (neighborhood.imageUrl) {
-        const oldImagePath = path.join(__dirname, '../../', neighborhood.imageUrl);
-        if (fs.existsSync(oldImagePath)) {
-          fs.unlinkSync(oldImagePath);
-        }
-      }
-      // 새 이미지 URL 설정
-      updateData.imageUrl = `/uploads/neighborhoods/${req.file.filename}`;
+// 관련된 방들 조회
+router.get('/:id/rooms', async (req, res) => {
+  try {
+    const neighborhood = await Neighborhood.findById(req.params.id);
+    if (!neighborhood) {
+      return res.status(404).json({ message: '동네를 찾을 수 없습니다.' });
     }
 
-    const updatedNeighborhood = await Neighborhood.findByIdAndUpdate(
-      req.params.id,
-      updateData,
-      { new: true }
-    );
-
-    console.log('동네 수정:', updatedNeighborhood);
-    res.json(updatedNeighborhood);
+    const buildings = await Building.find({ neighborhoodId: req.params.id });
+    const rooms = await Room.find({ buildingId: { $in: buildings.map(building => building._id) } });
+    res.json(rooms);
   } catch (error) {
-    console.error('동네 수정 에러:', error);
-    res.status(500).json({ message: '동네 수정에 실패했습니다.' });
+    console.error('[방 조회 에러]:', error);
+    res.status(500).json({ message: '방 목록 조회에 실패했습니다.' });
   }
 });
 

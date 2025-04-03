@@ -345,13 +345,36 @@ const AdminPage: React.FC = () => {
     event.preventDefault();
     
     try {
+      // 필수 필드 검증
+      if (!selectedNeighborhoodId || !buildingName || !buildingAddress || !buildingFloors) {
+        console.error('필수 필드 누락:', {
+          selectedNeighborhoodId,
+          buildingName,
+          buildingAddress,
+          buildingFloors
+        });
+        setMessage('필수 정보가 누락되었습니다.');
+        return;
+      }
+
       const formData = new FormData();
       formData.append('name', buildingName);
       formData.append('description', buildingDescription);
-      formData.append('neighborhoodId', selectedNeighborhoodId || '');
+      formData.append('neighborhoodId', selectedNeighborhoodId);
+      formData.append('address', buildingAddress);
+      formData.append('floors', buildingFloors.toString());
       if (buildingImage) {
         formData.append('image', buildingImage);
       }
+
+      console.log('건물 추가 요청 데이터:', {
+        name: buildingName,
+        description: buildingDescription,
+        neighborhoodId: selectedNeighborhoodId,
+        address: buildingAddress,
+        floors: buildingFloors,
+        hasImage: !!buildingImage
+      });
 
       const response = await api.post('/api/buildings', formData, {
         headers: {
@@ -359,9 +382,13 @@ const AdminPage: React.FC = () => {
         },
       });
 
+      console.log('건물 추가 응답:', response.data);
+
       // 폼 초기화
       setBuildingName('');
       setBuildingDescription('');
+      setBuildingAddress('');
+      setBuildingFloors(1);
       setBuildingImage(null);
       setEditingBuildingId(null);
 
@@ -373,6 +400,9 @@ const AdminPage: React.FC = () => {
       setMessage('건물이 성공적으로 추가되었습니다.');
     } catch (error) {
       console.error('건물 저장 에러:', error);
+      if (error.response) {
+        console.error('서버 응답:', error.response.data);
+      }
       setMessage('건물 저장에 실패했습니다.');
     }
   };
