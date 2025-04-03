@@ -209,18 +209,22 @@ const PanoramaViewer: React.FC<PanoramaViewerProps> = ({ panoramas }) => {
     let onPointerDownLon = 0;
     let onPointerDownLat = 0;
 
-    const onPointerDown = (event: MouseEvent) => {
+    const onPointerDown = (event: MouseEvent | TouchEvent) => {
       isUserInteracting = true;
-      onPointerDownMouseX = event.clientX;
-      onPointerDownMouseY = event.clientY;
+      const clientX = 'touches' in event ? event.touches[0].clientX : event.clientX;
+      const clientY = 'touches' in event ? event.touches[0].clientY : event.clientY;
+      onPointerDownMouseX = clientX;
+      onPointerDownMouseY = clientY;
       onPointerDownLon = lon;
       onPointerDownLat = lat;
     };
 
-    const onPointerMove = (event: MouseEvent) => {
+    const onPointerMove = (event: MouseEvent | TouchEvent) => {
       if (isUserInteracting) {
-        lon = (onPointerDownMouseX - event.clientX) * 0.1 + onPointerDownLon;
-        lat = (event.clientY - onPointerDownMouseY) * 0.1 + onPointerDownLat;
+        const clientX = 'touches' in event ? event.touches[0].clientX : event.clientX;
+        const clientY = 'touches' in event ? event.touches[0].clientY : event.clientY;
+        lon = (onPointerDownMouseX - clientX) * 0.1 + onPointerDownLon;
+        lat = (clientY - onPointerDownMouseY) * 0.1 + onPointerDownLat;
       }
     };
 
@@ -241,6 +245,11 @@ const PanoramaViewer: React.FC<PanoramaViewerProps> = ({ panoramas }) => {
     container.addEventListener('mousemove', onPointerMove);
     container.addEventListener('mouseup', onPointerUp);
     container.addEventListener('wheel', onWheel, { passive: false });
+    
+    // 터치 이벤트 리스너 등록
+    container.addEventListener('touchstart', onPointerDown);
+    container.addEventListener('touchmove', onPointerMove);
+    container.addEventListener('touchend', onPointerUp);
 
     // 창 크기 변경 처리
     const handleResize = () => {
@@ -263,6 +272,9 @@ const PanoramaViewer: React.FC<PanoramaViewerProps> = ({ panoramas }) => {
         container.removeEventListener('mousemove', onPointerMove);
         container.removeEventListener('mouseup', onPointerUp);
         container.removeEventListener('wheel', onWheel);
+        container.removeEventListener('touchstart', onPointerDown);
+        container.removeEventListener('touchmove', onPointerMove);
+        container.removeEventListener('touchend', onPointerUp);
       }
       window.removeEventListener('resize', handleResize);
       if (rendererRef.current) {
