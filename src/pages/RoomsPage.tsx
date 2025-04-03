@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import styled, { createGlobalStyle } from 'styled-components';
-import axios from 'axios';
 import { Chat as ChatIcon } from '@mui/icons-material';
 import HomeButton from '../components/HomeButton';
 import CustomLinkButton from '../components/CustomLinkButton';
+import api from '../api';
 
 const GlobalStyle = createGlobalStyle`
   body {
@@ -186,7 +186,7 @@ const RoomsPage = () => {
   useEffect(() => {
     const fetchRooms = async () => {
       try {
-        const response = await axios.get(`http://localhost:5000/api/rooms/building/${buildingId}`);
+        const response = await api.get(`/api/rooms/building/${buildingId}`);
         setRooms(response.data);
       } catch (error) {
         console.error('방 목록을 불러오는데 실패했습니다:', error);
@@ -219,7 +219,7 @@ const RoomsPage = () => {
                 onClick={() => navigate(`/rooms/${room._id}/panorama`)}
               >
                 <RoomImage
-                  src={`http://localhost:5000${room.imageUrl}`}
+                  src={`${process.env.REACT_APP_API_URL || 'https://panorama-backend.onrender.com'}${room.imageUrl}`}
                   alt={room.name}
                   onError={(e) => {
                     console.error('이미지 로드 실패:', room.name);
