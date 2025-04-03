@@ -344,41 +344,27 @@ const AdminPage: React.FC = () => {
     }
   };
 
-  const handleBuildingSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleBuildingSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    
     try {
       const formData = new FormData();
       formData.append('name', buildingName);
-      formData.append('address', buildingAddress);
       formData.append('description', buildingDescription);
-      formData.append('floors', buildingFloors.toString());
       formData.append('neighborhoodId', selectedNeighborhoodId || '');
       if (buildingImage) {
         formData.append('image', buildingImage);
       }
 
-      let response;
-      if (editingBuildingId) {
-        response = await api.put(`/buildings/${editingBuildingId}`, formData, {
-          headers: {
-            'Content-Type': 'multipart/form-data'
-          }
-        });
-        setMessage('건물이 성공적으로 수정되었습니다.');
-      } else {
-        response = await api.post('/buildings', formData, {
-          headers: {
-            'Content-Type': 'multipart/form-data'
-          }
-        });
-        setMessage('건물이 성공적으로 추가되었습니다.');
-      }
+      const response = await api.post('/api/buildings', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
 
       // 폼 초기화
       setBuildingName('');
-      setBuildingAddress('');
       setBuildingDescription('');
-      setBuildingFloors(1);
       setBuildingImage(null);
       setEditingBuildingId(null);
 
@@ -386,6 +372,8 @@ const AdminPage: React.FC = () => {
       if (selectedNeighborhoodId) {
         fetchBuildings(selectedNeighborhoodId);
       }
+
+      setMessage('건물이 성공적으로 추가되었습니다.');
     } catch (error) {
       console.error('건물 저장 에러:', error);
       setMessage('건물 저장에 실패했습니다.');
