@@ -9,7 +9,7 @@ import path from 'path';
 
 dotenv.config();
 
-const MONGODB_URI = process.env.MONGODB_URI;
+const MONGODB_URI: string = process.env.MONGODB_URI || '';
 if (!MONGODB_URI) {
   throw new Error('MONGODB_URI 환경 변수가 설정되지 않았습니다.');
 }
@@ -39,6 +39,7 @@ async function uploadDefaultImage(filename: string): Promise<string> {
 
 async function seedData() {
   try {
+    // MongoDB 연결
     await mongoose.connect(MONGODB_URI);
     console.log('MongoDB에 연결되었습니다.');
 
@@ -50,6 +51,7 @@ async function seedData() {
     gfs = new GridFSBucket(db, {
       bucketName: 'uploads'
     });
+    console.log('GridFS 버킷이 초기화되었습니다.');
 
     // 기본 이미지 업로드
     const defaultNeighborhoodImage = await uploadDefaultImage('default-neighborhood.jpg');
@@ -92,23 +94,8 @@ async function seedData() {
   }
 }
 
-// MongoDB 연결
-mongoose.connect(MONGODB_URI)
-  .then(() => {
-    console.log('MongoDB에 연결되었습니다.');
-    
-    // GridFS 버킷 초기화
-    if (mongoose.connection.db) {
-      gfs = new GridFSBucket(mongoose.connection.db, {
-        bucketName: 'uploads'
-      });
-      console.log('GridFS 버킷이 초기화되었습니다.');
-    }
-  })
-  .catch((error) => {
-    console.error('MongoDB 연결 실패:', error);
-    process.exit(1);
-  });
-
-seedData(); 
-seedData(); 
+// 스크립트 실행
+seedData().catch(error => {
+  console.error('스크립트 실행 중 에러 발생:', error);
+  process.exit(1);
+}); 
