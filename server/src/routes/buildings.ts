@@ -11,6 +11,11 @@ const router = express.Router();
 const storage = multer.memoryStorage();
 const upload = multer({ storage });
 
+// GridFS 버킷 초기화
+const bucket = new GridFSBucket(mongoose.connection.db, {
+  bucketName: 'uploads'
+});
+
 // 건물 목록 조회
 router.get('/', async (req, res) => {
   try {
@@ -18,8 +23,8 @@ router.get('/', async (req, res) => {
     console.log('[건물 조회] 결과:', buildings);
     res.json(buildings);
   } catch (error) {
-    console.error('[건물 조회 에러]:', error);
-    res.status(500).json({ message: '건물 목록 조회에 실패했습니다.' });
+    console.error('건물 조회 에러:', error);
+    res.status(500).json({ success: false, message: '건물 조회 중 오류가 발생했습니다.' });
   }
 });
 
@@ -39,110 +44,67 @@ router.get('/neighborhood/:neighborhoodId', async (req, res) => {
 // 건물 추가
 router.post('/', upload.single('image'), async (req, res) => {
   try {
-    console.log('[건물 추가] 요청 본문:', JSON.stringify(req.body, null, 2));
-    console.log('[건물 추가] 파일:', req.file ? {
-      fieldname: req.file.fieldname,
-      originalname: req.file.originalname,
-      mimetype: req.file.mimetype,
-      size: req.file.size
-    } : '파일 없음');
-    console.log('[건물 추가] 요청 헤더:', req.headers);
-    
-    const { name, neighborhoodId, address, floors, description } = req.body;
-    
+    console.log('건물 추가 요청:', {
+      body: req.body,
+      file: req.file ? {
+        fieldname: req.file.fieldname,
+        originalname: req.file.originalname,
+        mimetype: req.file.mimetype,
+        size: req.file.size
+      } : null
+    });
+
+    const { name, neighborhoodId, address, floors } = req.body;
+
     // 필수 필드 검증
     if (!name || !neighborhoodId || !address || !floors) {
-      console.error('[건물 추가 에러] 필수 필드 누락:', { 
-        name, 
-        neighborhoodId, 
-        address, 
-        floors,
-        description 
-      });
+      console.error('필수 필드 누락:', { name, neighborhoodId, address, floors });
       return res.status(400).json({ 
-        success: false,
-        message: '필수 정보가 누락되었습니다.',
-        missingFields: {
-          name: !name,
-          neighborhoodId: !neighborhoodId,
-          address: !address,
-          floors: !floors
-        }
+        success: false, 
+        message: '이름, 동네ID, 주소, 층수는 필수 입력 항목입니다.' 
       });
     }
 
-    // floors가 숫자인지 검증
-    if (isNaN(parseInt(floors))) {
-      console.error('[건물 추가 에러] 층수가 숫자가 아님:', floors);
+    // 층수 숫자 검증
+    if (isNaN(Number(floors))) {
+      console.error('층수 형식 오류:', floors);
       return res.status(400).json({ 
-        success: false,
-        message: '층수는 숫자여야 합니다.',
-        invalidField: 'floors'
+        success: false, 
+        message: '층수는 숫자여야 합니다.' 
       });
     }
 
     let imageUrl = '';
-
     if (req.file) {
-      try {
-        const filename = `${Date.now()}-${req.file.originalname}`;
-        console.log('[건물 추가] GridFS 파일명:', filename);
-        
-        const writeStream = gfs.openUploadStream(filename, {
-          contentType: req.file.mimetype
-        });
-
-        writeStream.write(req.file.buffer);
-        writeStream.end();
-
-        imageUrl = `/api/images/${filename}`;
-        console.log('[건물 추가] 이미지 URL:', imageUrl);
-      } catch (error) {
-        console.error('[건물 추가] 이미지 업로드 에러:', error);
-        return res.status(500).json({ 
-          success: false,
-          message: '이미지 업로드에 실패했습니다.',
-          error: error instanceof Error ? error.message : '알 수 없는 오류'
-        });
-      }
+      const filename = `${Date.now()}-${req.file.originalname}`;
+      const uploadStream = bucket.openUploadStream(filename);
+      
+      uploadStream.end(req.file.buffer);
+      
+      imageUrl = `/api/images/${filename}`;
+      console.log('이미지 업로드 성공:', { filename, imageUrl });
     }
-
-    console.log('[건물 추가] 데이터:', {
-      name,
-      neighborhoodId,
-      address,
-      floors,
-      description,
-      imageUrl
-    });
 
     const building = new Building({
       name,
       neighborhoodId,
       address,
-      floors: parseInt(floors),
-      description,
+      floors: Number(floors),
       imageUrl
     });
 
-    await building.save();
-    console.log('[건물 추가] 저장된 건물:', building);
-    res.status(201).json({
-      success: true,
-      data: building
+    const savedBuilding = await building.save();
+    console.log('건물 저장 성공:', savedBuilding);
+    
+    res.status(201).json({ 
+      success: true, 
+      building: savedBuilding 
     });
   } catch (error) {
-    console.error('[건물 추가 에러]:', error);
-    if (error instanceof Error) {
-      console.error('[건물 추가 에러 상세]:', {
-        message: error.message,
-        stack: error.stack
-      });
-    }
+    console.error('건물 저장 에러:', error);
     res.status(500).json({ 
-      success: false,
-      message: '건물 추가에 실패했습니다.',
-      error: error instanceof Error ? error.message : '알 수 없는 오류'
+      success: false, 
+      message: '건물 저장 중 오류가 발생했습니다.' 
     });
   }
 });
