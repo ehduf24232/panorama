@@ -13,11 +13,13 @@ const upload = multer({ storage });
 
 // GridFS 버킷 초기화
 let bucket: GridFSBucket;
-mongoose.connection.once('open', () => {
+if (mongoose.connection.db) {
   bucket = new GridFSBucket(mongoose.connection.db, {
     bucketName: 'uploads'
   });
-});
+} else {
+  throw new Error('MongoDB 연결이 초기화되지 않았습니다.');
+}
 
 // 건물 목록 조회
 router.get('/', async (req, res) => {
