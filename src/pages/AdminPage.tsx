@@ -241,7 +241,7 @@ const AdminPage: React.FC = () => {
   // 설정 관련 함수들
   const fetchSettings = async () => {
     try {
-      const response = await api.get('/settings');
+      const response = await api.get('/api/settings');
       const settings = response.data;
       if (settings) {
         setCustomLinkUrl(settings.customLinkUrl || '');
@@ -334,13 +334,10 @@ const AdminPage: React.FC = () => {
   // 건물 관련 함수들
   const fetchBuildings = async (neighborhoodId: string) => {
     try {
-      console.log('건물 목록 요청:', neighborhoodId);
-      const response = await api.get(`/buildings/neighborhood/${neighborhoodId}`);
-      console.log('건물 목록 응답:', response.data);
+      const response = await api.get(`/api/buildings/neighborhood/${neighborhoodId}`);
       setBuildings(response.data);
     } catch (error) {
       console.error('건물 목록을 불러오는데 실패했습니다:', error);
-      setBuildings([]);
     }
   };
 
