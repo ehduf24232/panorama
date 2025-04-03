@@ -12,14 +12,17 @@ const storage = multer.memoryStorage();
 const upload = multer({ storage });
 
 // GridFS 버킷 초기화
-let bucket: GridFSBucket;
-if (mongoose.connection.db) {
-  bucket = new GridFSBucket(mongoose.connection.db, {
-    bucketName: 'uploads'
-  });
-} else {
-  throw new Error('MongoDB 연결이 초기화되지 않았습니다.');
-}
+let bucket: GridFSBucket | null = null;
+
+// MongoDB 연결이 완료된 후 GridFS 버킷 초기화
+mongoose.connection.once('open', () => {
+  if (mongoose.connection.db) {
+    bucket = new GridFSBucket(mongoose.connection.db, {
+      bucketName: 'uploads'
+    });
+    console.log('GridFS 버킷이 초기화되었습니다.');
+  }
+});
 
 // 건물 목록 조회
 router.get('/', async (req, res) => {
@@ -79,7 +82,7 @@ router.post('/', upload.single('image'), async (req, res) => {
     }
 
     let imageUrl = '';
-    if (req.file) {
+    if (req.file && bucket) {
       const filename = `${Date.now()}-${req.file.originalname}`;
       const uploadStream = bucket.openUploadStream(filename, {
         contentType: req.file.mimetype
