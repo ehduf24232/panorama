@@ -29,7 +29,7 @@ router.get('/', async (req, res) => {
   try {
     const buildings = await Building.find();
     res.json(buildings);
-  } catch (error: unknown) {
+  } catch (error: Error) {
     console.error('건물 조회 에러:', error);
     res.status(500).json({ success: false, message: '건물 조회 중 오류가 발생했습니다.' });
   }
@@ -110,7 +110,7 @@ router.post('/', upload.single('image'), async (req, res) => {
       success: true, 
       building: savedBuilding 
     });
-  } catch (error: unknown) {
+  } catch (error: Error) {
     console.error('건물 저장 에러:', error);
     res.status(500).json({ 
       success: false, 
