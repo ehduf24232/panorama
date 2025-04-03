@@ -74,6 +74,8 @@ const Title = styled.h1`
   color: #fff;
   font-weight: 700;
   text-align: center;
+  position: relative;
+  z-index: 1;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
 `;
 
