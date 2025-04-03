@@ -4,11 +4,6 @@ import axios from 'axios';
 import HomeButton from '../components/HomeButton';
 
 // axios 인스턴스 생성
-<<<<<<< HEAD
-const API_BASE_URL = 'http://localhost:5000/api';
-const api = axios.create({
-  baseURL: API_BASE_URL
-=======
 const API_BASE_URL = 'https://panorama-backend.onrender.com';
 
 const api = axios.create({
@@ -17,33 +12,26 @@ const api = axios.create({
   headers: {
     'Content-Type': 'application/json'
   }
->>>>>>> 0282ec32634cd33da6e775ee53973250ec8b757b
 });
 
 const Container = styled.div`
   padding: 2rem;
   max-width: 1200px;
   margin: 0 auto;
-<<<<<<< HEAD
-=======
 
   @media (max-width: 768px) {
     padding: 6rem 1rem 2rem 1rem;
   }
->>>>>>> 0282ec32634cd33da6e775ee53973250ec8b757b
 `;
 
 const Title = styled.h1`
   text-align: center;
   margin-bottom: 2rem;
   color: #333;
-<<<<<<< HEAD
-=======
 
   @media (max-width: 768px) {
     margin-top: 2rem;
   }
->>>>>>> 0282ec32634cd33da6e775ee53973250ec8b757b
 `;
 
 const Section = styled.section`
@@ -52,14 +40,11 @@ const Section = styled.section`
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   margin-bottom: 2rem;
-<<<<<<< HEAD
-=======
 
   @media (max-width: 768px) {
     padding: 1.5rem;
     margin-top: 1rem;
   }
->>>>>>> 0282ec32634cd33da6e775ee53973250ec8b757b
 `;
 
 const SectionTitle = styled.h2`
@@ -75,8 +60,6 @@ const Form = styled.form`
 
 const FormGroup = styled.div`
   margin-bottom: 1.5rem;
-<<<<<<< HEAD
-=======
 
   @media (max-width: 768px) {
     margin-bottom: 1rem;
@@ -85,7 +68,6 @@ const FormGroup = styled.div`
   select, input, textarea {
     margin-top: 0.5rem;
   }
->>>>>>> 0282ec32634cd33da6e775ee53973250ec8b757b
 `;
 
 const Label = styled.label`
@@ -93,13 +75,10 @@ const Label = styled.label`
   margin-bottom: 0.5rem;
   color: #333;
   font-weight: bold;
-<<<<<<< HEAD
-=======
 
   @media (max-width: 768px) {
     font-size: 0.9rem;
   }
->>>>>>> 0282ec32634cd33da6e775ee53973250ec8b757b
 `;
 
 const Input = styled.input`
@@ -262,11 +241,7 @@ const AdminPage: React.FC = () => {
   // 설정 관련 함수들
   const fetchSettings = async () => {
     try {
-<<<<<<< HEAD
-      const response = await api.get('/settings');
-=======
       const response = await api.get('/api/settings');
->>>>>>> 0282ec32634cd33da6e775ee53973250ec8b757b
       const settings = response.data;
       if (settings) {
         setCustomLinkUrl(settings.customLinkUrl || '');
@@ -282,7 +257,7 @@ const AdminPage: React.FC = () => {
   const handleSettingsSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await api.put('/settings', {
+      await api.put('/api/settings', {
         customLinkUrl,
         customLinkText
       });
@@ -298,11 +273,7 @@ const AdminPage: React.FC = () => {
   // 동네 관련 함수들
   const fetchNeighborhoods = async () => {
     try {
-<<<<<<< HEAD
-      const response = await api.get('/neighborhoods');
-=======
       const response = await api.get('/api/neighborhoods');
->>>>>>> 0282ec32634cd33da6e775ee53973250ec8b757b
       setNeighborhoods(response.data);
     } catch (error) {
       console.error('동네 목록을 불러오는데 실패했습니다:', error);
@@ -319,25 +290,15 @@ const AdminPage: React.FC = () => {
         formData.append('image', neighborhoodImage);
       }
 
-<<<<<<< HEAD
-      let response;
-      if (editingNeighborhoodId) {
-        response = await api.put(`/neighborhoods/${editingNeighborhoodId}`, formData, {
-=======
       if (editingNeighborhoodId) {
         await api.put(`/api/neighborhoods/${editingNeighborhoodId}`, formData, {
->>>>>>> 0282ec32634cd33da6e775ee53973250ec8b757b
           headers: {
             'Content-Type': 'multipart/form-data'
           }
         });
         setMessage('동네가 성공적으로 수정되었습니다.');
       } else {
-<<<<<<< HEAD
-        response = await api.post('/neighborhoods', formData, {
-=======
         await api.post('/api/neighborhoods', formData, {
->>>>>>> 0282ec32634cd33da6e775ee53973250ec8b757b
           headers: {
             'Content-Type': 'multipart/form-data'
           }
@@ -349,13 +310,8 @@ const AdminPage: React.FC = () => {
       setNeighborhoodName('');
       setNeighborhoodDescription('');
       setNeighborhoodImage(null);
-<<<<<<< HEAD
       setEditingNeighborhoodId(null);
 
-=======
-      setEditingNeighborhoodId('');
-      
->>>>>>> 0282ec32634cd33da6e775ee53973250ec8b757b
       // 동네 목록 새로고침
       fetchNeighborhoods();
     } catch (error) {
@@ -366,37 +322,22 @@ const AdminPage: React.FC = () => {
 
   const handleNeighborhoodDelete = async (id: string) => {
     try {
-<<<<<<< HEAD
-      await api.delete(`/neighborhoods/${id}`);
-      setMessage('동네가 성공적으로 삭제되었습니다.');
-      setIsError(false);
-      fetchNeighborhoods();
-    } catch (error) {
-      console.error('동네 삭제 중 오류 발생:', error);
-      setMessage('동네 삭제에 실패했습니다.');
-      setIsError(true);
-=======
       await api.delete(`/api/neighborhoods/${id}`);
       setMessage('동네가 성공적으로 삭제되었습니다.');
       fetchNeighborhoods();
     } catch (error) {
       console.error('동네 삭제 에러:', error);
       setMessage('동네 삭제에 실패했습니다.');
->>>>>>> 0282ec32634cd33da6e775ee53973250ec8b757b
     }
   };
 
   // 건물 관련 함수들
   const fetchBuildings = async (neighborhoodId: string) => {
     try {
-<<<<<<< HEAD
-      console.log('건물 목록 요청:', neighborhoodId);
-      const response = await api.get(`/buildings/neighborhood/${neighborhoodId}`);
-      console.log('건물 목록 응답:', response.data);
+      const response = await api.get(`/api/buildings/neighborhood/${neighborhoodId}`);
       setBuildings(response.data);
     } catch (error) {
       console.error('건물 목록을 불러오는데 실패했습니다:', error);
-      setBuildings([]);
     }
   };
 
@@ -409,52 +350,19 @@ const AdminPage: React.FC = () => {
       formData.append('description', buildingDescription);
       formData.append('floors', buildingFloors.toString());
       formData.append('neighborhoodId', selectedNeighborhoodId || '');
-=======
-      const response = await api.get(`/api/buildings/neighborhood/${neighborhoodId}`);
-      setBuildings(response.data);
-    } catch (error) {
-      console.error('건물 목록을 불러오는데 실패했습니다:', error);
-    }
-  };
-
-  const handleBuildingSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    
-    try {
-      // 필수 필드 검증
-      if (!selectedNeighborhoodId || !buildingName || !buildingAddress || !buildingFloors) {
-        console.error('필수 필드 누락:', {
-          selectedNeighborhoodId,
-          buildingName,
-          buildingAddress,
-          buildingFloors
-        });
-        setMessage('필수 정보가 누락되었습니다.');
-        return;
-      }
-
-      const formData = new FormData();
-      formData.append('name', buildingName);
-      formData.append('description', buildingDescription);
-      formData.append('neighborhoodId', selectedNeighborhoodId);
-      formData.append('address', buildingAddress);
-      formData.append('floors', buildingFloors.toString());
->>>>>>> 0282ec32634cd33da6e775ee53973250ec8b757b
       if (buildingImage) {
         formData.append('image', buildingImage);
       }
 
-<<<<<<< HEAD
-      let response;
       if (editingBuildingId) {
-        response = await api.put(`/buildings/${editingBuildingId}`, formData, {
+        await api.put(`/api/buildings/${editingBuildingId}`, formData, {
           headers: {
             'Content-Type': 'multipart/form-data'
           }
         });
         setMessage('건물이 성공적으로 수정되었습니다.');
       } else {
-        response = await api.post('/buildings', formData, {
+        await api.post('/api/buildings', formData, {
           headers: {
             'Content-Type': 'multipart/form-data'
           }
@@ -466,29 +374,6 @@ const AdminPage: React.FC = () => {
       setBuildingName('');
       setBuildingAddress('');
       setBuildingDescription('');
-=======
-      console.log('건물 추가 요청 데이터:', {
-        name: buildingName,
-        description: buildingDescription,
-        neighborhoodId: selectedNeighborhoodId,
-        address: buildingAddress,
-        floors: buildingFloors,
-        hasImage: !!buildingImage
-      });
-
-      const response = await api.post('/api/buildings', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      });
-
-      console.log('건물 추가 응답:', response.data);
-
-      // 폼 초기화
-      setBuildingName('');
-      setBuildingDescription('');
-      setBuildingAddress('');
->>>>>>> 0282ec32634cd33da6e775ee53973250ec8b757b
       setBuildingFloors(1);
       setBuildingImage(null);
       setEditingBuildingId(null);
@@ -497,25 +382,15 @@ const AdminPage: React.FC = () => {
       if (selectedNeighborhoodId) {
         fetchBuildings(selectedNeighborhoodId);
       }
-<<<<<<< HEAD
     } catch (error) {
       console.error('건물 저장 에러:', error);
-=======
-
-      setMessage('건물이 성공적으로 추가되었습니다.');
-    } catch (error) {
-      console.error('건물 저장 에러:', error);
-      if (error.response) {
-        console.error('서버 응답:', error.response.data);
-      }
->>>>>>> 0282ec32634cd33da6e775ee53973250ec8b757b
       setMessage('건물 저장에 실패했습니다.');
     }
   };
 
   const handleBuildingDelete = async (id: string) => {
     try {
-      await api.delete(`/buildings/${id}`);
+      await api.delete(`/api/buildings/${id}`);
       setMessage('건물이 성공적으로 삭제되었습니다.');
       setIsError(false);
       fetchBuildings(selectedNeighborhoodId);
@@ -529,9 +404,7 @@ const AdminPage: React.FC = () => {
   // 호실 관련 함수들
   const fetchRooms = async (buildingId: string) => {
     try {
-      console.log('호실 목록 요청:', buildingId);
-      const response = await api.get(`/rooms/building/${buildingId}`);
-      console.log('호실 목록 응답:', response.data);
+      const response = await api.get(`/api/rooms/building/${buildingId}`);
       setRooms(response.data);
     } catch (error) {
       console.error('호실 목록을 불러오는데 실패했습니다:', error);
@@ -574,14 +447,10 @@ const AdminPage: React.FC = () => {
       };
 
       if (editingRoomId) {
-        await api.put(`/rooms/${editingRoomId}`, formData, config);
+        await api.put(`/api/rooms/${editingRoomId}`, formData, config);
         setMessage('호실이 성공적으로 수정되었습니다.');
       } else {
-<<<<<<< HEAD
-=======
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
->>>>>>> 0282ec32634cd33da6e775ee53973250ec8b757b
-        const response = await api.post('/rooms', formData, config);
+        const response = await api.post('/api/rooms', formData, config);
         console.log('[호실 등록 응답]:', response.data);
         setMessage('호실이 성공적으로 등록되었습니다.');
       }
@@ -608,7 +477,7 @@ const AdminPage: React.FC = () => {
 
   const handleRoomDelete = async (id: string) => {
     try {
-      await api.delete(`/rooms/${id}`);
+      await api.delete(`/api/rooms/${id}`);
       setMessage('호실이 성공적으로 삭제되었습니다.');
       setIsError(false);
       if (selectedBuildingId) {
