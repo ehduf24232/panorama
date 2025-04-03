@@ -132,8 +132,9 @@ router.post('/', upload.fields([
       const tags = panoramaTags ? JSON.parse(panoramaTags) : [];
       for (let i = 0; i < files['panoramas'].length; i++) {
         const file = files['panoramas'][i];
-        const filename = `${Date.now()}-${file.originalname}`;
-        const uploadStream = gfs.openUploadStream(filename, {
+        // 파일 이름에서 타임스탬프를 제거하고 원래 파일 이름만 사용
+        const originalFilename = file.originalname;
+        const uploadStream = gfs.openUploadStream(originalFilename, {
           contentType: file.mimetype
         });
         
@@ -146,7 +147,7 @@ router.post('/', upload.fields([
         });
         
         panoramas.push({
-          url: `/api/images/${filename}`,
+          url: `/api/images/${originalFilename}`,
           tag: tags[i] || ''
         });
       }
