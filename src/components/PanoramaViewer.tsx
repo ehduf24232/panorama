@@ -202,7 +202,7 @@ const PanoramaViewer: React.FC<PanoramaViewerProps> = ({ panoramas }) => {
 
     animate();
 
-    // 마우스 이벤트 처리
+    // 마우스/터치 이벤트 처리
     let isUserInteracting = false;
     let onPointerDownMouseX = 0;
     let onPointerDownMouseY = 0;
@@ -210,22 +210,37 @@ const PanoramaViewer: React.FC<PanoramaViewerProps> = ({ panoramas }) => {
     let onPointerDownLat = 0;
 
     const onPointerDown = (event: MouseEvent | TouchEvent) => {
+      event.preventDefault();
       isUserInteracting = true;
-      const clientX = 'touches' in event ? event.touches[0].clientX : event.clientX;
-      const clientY = 'touches' in event ? event.touches[0].clientY : event.clientY;
-      onPointerDownMouseX = clientX;
-      onPointerDownMouseY = clientY;
+      
+      if ('touches' in event) {
+        onPointerDownMouseX = event.touches[0].clientX;
+        onPointerDownMouseY = event.touches[0].clientY;
+      } else {
+        onPointerDownMouseX = event.clientX;
+        onPointerDownMouseY = event.clientY;
+      }
+      
       onPointerDownLon = lon;
       onPointerDownLat = lat;
     };
 
     const onPointerMove = (event: MouseEvent | TouchEvent) => {
-      if (isUserInteracting) {
-        const clientX = 'touches' in event ? event.touches[0].clientX : event.clientX;
-        const clientY = 'touches' in event ? event.touches[0].clientY : event.clientY;
-        lon = (onPointerDownMouseX - clientX) * 0.1 + onPointerDownLon;
-        lat = (clientY - onPointerDownMouseY) * 0.1 + onPointerDownLat;
+      if (!isUserInteracting) return;
+      event.preventDefault();
+
+      let clientX, clientY;
+      
+      if ('touches' in event) {
+        clientX = event.touches[0].clientX;
+        clientY = event.touches[0].clientY;
+      } else {
+        clientX = event.clientX;
+        clientY = event.clientY;
       }
+
+      lon = (onPointerDownMouseX - clientX) * 0.1 + onPointerDownLon;
+      lat = (clientY - onPointerDownMouseY) * 0.1 + onPointerDownLat;
     };
 
     const onPointerUp = () => {
@@ -241,15 +256,15 @@ const PanoramaViewer: React.FC<PanoramaViewerProps> = ({ panoramas }) => {
     };
 
     // 이벤트 리스너 등록
-    container.addEventListener('mousedown', onPointerDown);
-    container.addEventListener('mousemove', onPointerMove);
-    container.addEventListener('mouseup', onPointerUp);
+    container.addEventListener('mousedown', onPointerDown, { passive: false });
+    container.addEventListener('mousemove', onPointerMove, { passive: false });
+    container.addEventListener('mouseup', onPointerUp, { passive: false });
     container.addEventListener('wheel', onWheel, { passive: false });
     
     // 터치 이벤트 리스너 등록
-    container.addEventListener('touchstart', onPointerDown);
-    container.addEventListener('touchmove', onPointerMove);
-    container.addEventListener('touchend', onPointerUp);
+    container.addEventListener('touchstart', onPointerDown, { passive: false });
+    container.addEventListener('touchmove', onPointerMove, { passive: false });
+    container.addEventListener('touchend', onPointerUp, { passive: false });
 
     // 창 크기 변경 처리
     const handleResize = () => {
