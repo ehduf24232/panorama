@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import api from '../api';
+import { isAxiosError } from 'axios';
 
 // 타입 정의
 export interface Neighborhood {
@@ -90,7 +91,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     } catch (error) {
       console.error('전체 데이터 로딩 중 오류 발생:', error);
-      if (api.isAxiosError(error)) {
+      if (isAxiosError(error)) {
         console.error('응답 데이터:', error.response?.data);
       }
     }
