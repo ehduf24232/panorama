@@ -73,9 +73,8 @@ app.use((err: any, req: express.Request, res: express.Response, next: express.Ne
 mongoose.connect(MONGODB_URI)
   .then(() => {
     console.log('MongoDB에 연결되었습니다.');
-    const port = Number(PORT);
-    app.listen(port, '0.0.0.0', () => {
-      console.log(`서버가 포트 ${port}에서 실행 중입니다.`);
+    app.listen(Number(PORT), '0.0.0.0', () => {
+      console.log(`서버가 포트 ${PORT}에서 실행 중입니다.`);
     });
   })
   .catch((error) => {
