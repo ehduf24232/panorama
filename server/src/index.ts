@@ -19,7 +19,7 @@ const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/panora
 
 // CORS 설정
 app.use(cors({
-  origin: ['http://localhost:3001', 'https://realestate-panorama.netlify.app'],
+  origin: 'https://realestate-panorama.netlify.app',
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
