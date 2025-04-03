@@ -4,6 +4,8 @@ import styled from 'styled-components';
 import PanoramaViewer from '../components/PanoramaViewer';
 import { useData } from '../contexts/DataContext';
 import axios from 'axios';
+import HomeButton from '../components/HomeButton';
+import api from '../api';
 
 const Container = styled.div`
   width: 100vw;
@@ -73,7 +75,7 @@ const PanoramaPage: React.FC = () => {
   useEffect(() => {
     const fetchRoom = async () => {
       try {
-        const response = await axios.get(`http://localhost:5000/api/rooms/${roomId}`);
+        const response = await api.get(`/api/rooms/${roomId}`);
         console.log('[방 데이터]:', response.data);
         console.log('[파노라마 데이터]:', response.data.panoramas);
         if (!response.data.panoramas || response.data.panoramas.length === 0) {

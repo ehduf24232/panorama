@@ -275,17 +275,15 @@ const PanoramaViewer: React.FC<PanoramaViewerProps> = ({ panoramas }) => {
   }, [panoramas]);
 
   const loadPanorama = (url: string) => {
-    if (!sceneRef.current) {
-      console.error('Scene이 초기화되지 않았습니다.');
+    if (!url) {
+      console.error('[파노라마] URL이 없습니다.');
       return;
     }
 
-    // URL이 /uploads로 시작하는 경우 서버 URL을 추가
+    // URL이 이미 전체 URL인 경우 그대로 사용
     const fullUrl = url.startsWith('http') 
       ? url 
-      : url.startsWith('/uploads')
-        ? `http://localhost:5000${url}`
-        : `http://localhost:5000/uploads/panoramas/${url}`;
+      : `${process.env.REACT_APP_API_URL || 'https://panorama-backend.onrender.com'}${url}`;
 
     console.log('[파노라마] 이미지 로드 시작:', fullUrl);
 
