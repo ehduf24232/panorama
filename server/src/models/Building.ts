@@ -5,7 +5,7 @@ const buildingSchema = new mongoose.Schema({
   neighborhoodId: { type: String, required: true },
   address: { type: String, required: true },
   floors: { type: Number, required: true },
-  description: { type: String, required: true },
+  description: { type: String, default: '' },
   imageUrl: { type: String, default: '' }
 });
 
