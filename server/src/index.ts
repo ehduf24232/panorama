@@ -22,12 +22,22 @@ app.use(cors({
   origin: ['https://realestate-panorama.netlify.app', 'http://localhost:3000'],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  exposedHeaders: ['Access-Control-Allow-Origin'],
+  preflightContinue: false,
+  optionsSuccessStatus: 204
 }));
 
 // 요청 헤더 로깅 미들웨어
 app.use((req, res, next) => {
-  console.log('요청 헤더:', req.headers);
+  res.header('Access-Control-Allow-Origin', 'https://realestate-panorama.netlify.app');
+  res.header('Access-Control-Allow-Credentials', 'true');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  
+  if (req.method === 'OPTIONS') {
+    return res.status(204).end();
+  }
   next();
 });
 
