@@ -13,7 +13,7 @@ import settingsRouter from './routes/settings';
 dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT ? parseInt(process.env.PORT) : 5000;
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/panorama';
 
 // CORS 설정
@@ -64,7 +64,7 @@ mongoose.connect(MONGODB_URI)
     
     console.log('GridFS 버킷이 초기화되었습니다.');
     
-    app.listen(Number(PORT), '0.0.0.0', () => {
+    app.listen(PORT, '0.0.0.0', () => {
       console.log(`서버가 포트 ${PORT}에서 실행 중입니다.`);
     });
   })
