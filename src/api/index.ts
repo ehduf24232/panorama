@@ -7,9 +7,7 @@ const api = axios.create({
   baseURL: API_BASE_URL,
   withCredentials: true,
   headers: {
-    'Content-Type': 'application/json',
-    'Access-Control-Allow-Origin': 'https://realestate-panorama.netlify.app',
-    'Access-Control-Allow-Credentials': 'true'
+    'Content-Type': 'application/json'
   }
 });
 
