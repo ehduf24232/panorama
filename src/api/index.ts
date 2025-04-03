@@ -11,6 +11,20 @@ const api = axios.create({
   }
 });
 
+// 요청 인터셉터 추가
+api.interceptors.request.use(
+  (config) => {
+    // multipart/form-data 요청인 경우 Content-Type 헤더 제거
+    if (config.data instanceof FormData) {
+      delete config.headers['Content-Type'];
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
+
 // 응답 인터셉터 추가
 api.interceptors.response.use(
   (response) => response,
