@@ -299,7 +299,7 @@ const AdminPage: React.FC = () => {
         });
         setMessage('동네가 성공적으로 수정되었습니다.');
       } else {
-        response = await api.post('/neighborhoods', formData, {
+        response = await api.post('/api/neighborhoods', formData, {
           headers: {
             'Content-Type': 'multipart/form-data'
           }
