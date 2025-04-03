@@ -31,7 +31,24 @@ const StyledButton = styled.button`
   & > svg {
     width: 18px;
     height: 18px;
+<<<<<<< HEAD
     flex-shrink: 0;
+=======
+  }
+
+  @media (max-width: 768px) {
+    padding: 0;
+    width: 38px;
+    border-radius: 50%;
+
+    span {
+      display: none;
+    }
+
+    & > svg {
+      margin: 0;
+    }
+>>>>>>> 0282ec32634cd33da6e775ee53973250ec8b757b
   }
 
   &:hover {
@@ -52,7 +69,11 @@ const HomeButton: React.FC = () => {
     <ButtonContainer>
       <StyledButton onClick={() => navigate('/')}>
         <HomeIcon />
+<<<<<<< HEAD
         홈으로
+=======
+        <span>홈으로</span>
+>>>>>>> 0282ec32634cd33da6e775ee53973250ec8b757b
       </StyledButton>
     </ButtonContainer>
   );

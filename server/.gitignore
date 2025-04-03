@@ -1,30 +1,26 @@
 # dependencies
 /node_modules
-<<<<<<< HEAD
-=======
-/instagram/node_modules
->>>>>>> 0282ec32634cd33da6e775ee53973250ec8b757b
-/.pnp
-.pnp.js
-
-# testing
-/coverage
 
 # production
-/build
 /dist
 
 # misc
 .DS_Store
+.env
 .env.local
 .env.development.local
 .env.test.local
 .env.production.local
 
+# logs
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
 # IDE
 .idea
-.vscode 
+.vscode
+
+# uploads
+/uploads/*
+!uploads/.gitkeep 

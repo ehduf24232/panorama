@@ -1,63 +1,91 @@
 import mongoose from 'mongoose';
-import Settings from '../models/Settings';
+import { GridFSBucket } from 'mongodb';
+import dotenv from 'dotenv';
 import Neighborhood from '../models/Neighborhood';
 import Building from '../models/Building';
 import Room from '../models/Room';
+import fs from 'fs';
+import path from 'path';
 
-const MONGODB_URI = 'mongodb://localhost:27017/panorama';
+dotenv.config();
+
+const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/panorama';
+
+let gfs: GridFSBucket;
+
+const defaultImages = {
+  neighborhood: '/api/images/default-neighborhood.jpg',
+  building: '/api/images/default-building.jpg',
+  room: '/api/images/default-room.jpg'
+};
+
+async function uploadDefaultImage(filename: string): Promise<string> {
+  const filePath = path.join(__dirname, `../assets/${filename}`);
+  const readStream = fs.createReadStream(filePath);
+  
+  const uploadStream = gfs.openUploadStream(filename);
+  readStream.pipe(uploadStream);
+  
+  return new Promise((resolve, reject) => {
+    uploadStream.on('finish', () => {
+      resolve(`/api/images/${filename}`);
+    });
+    uploadStream.on('error', reject);
+  });
+}
 
 async function seedData() {
   try {
     await mongoose.connect(MONGODB_URI);
     console.log('MongoDB에 연결되었습니다.');
 
+    // GridFS 버킷 초기화
+    const db = mongoose.connection.db;
+    if (!db) {
+      throw new Error('MongoDB 연결이 초기화되지 않았습니다.');
+    }
+    gfs = new GridFSBucket(db, {
+      bucketName: 'uploads'
+    });
+
+    // 기본 이미지 업로드
+    const defaultNeighborhoodImage = await uploadDefaultImage('default-neighborhood.jpg');
+    const defaultBuildingImage = await uploadDefaultImage('default-building.jpg');
+    const defaultRoomImage = await uploadDefaultImage('default-room.jpg');
+
     // 기존 데이터 삭제
-    await Settings.deleteMany({});
     await Neighborhood.deleteMany({});
     await Building.deleteMany({});
     await Room.deleteMany({});
 
-    // 설정 데이터 추가
-    await Settings.create({
-      customLinkUrl: 'https://example.com',
-      customLinkText: '회사 홈페이지'
-    });
-
-    // 동네 데이터 추가
+    // 샘플 데이터 생성
     const neighborhood = await Neighborhood.create({
-      name: '강남구',
-      description: '서울특별시 강남구',
-      imageUrl: '/uploads/neighborhoods/default.jpg'
+      name: '테스트 동네',
+      description: '테스트 동네 설명',
+      imageUrl: defaultNeighborhoodImage
     });
 
-    // 건물 데이터 추가
     const building = await Building.create({
-      name: '강남 빌라',
-      description: '강남구에 위치한 빌라',
-      neighborhoodId: neighborhood._id,
-      imageUrl: '/uploads/buildings/default.jpg',
-      floors: 5,
-      address: '서울특별시 강남구 테스트로 123'
+      name: '테스트 건물',
+      description: '테스트 건물 설명',
+      address: '서울시 강남구',
+      neighborhood: neighborhood._id,
+      imageUrl: defaultBuildingImage
     });
 
-    // 방 데이터 추가
     await Room.create({
-      name: '1층 101호',
-      description: '1층에 위치한 방',
-      buildingId: building._id,
-      imageUrl: '/uploads/rooms/default.jpg',
-      panoramaUrl: '/uploads/panoramas/default.jpg',
-      floor: 1,
-      price: 50000000,
-      size: 30,
-      number: '101'
+      name: '테스트 방',
+      description: '테스트 방 설명',
+      building: building._id,
+      imageUrl: defaultRoomImage,
+      panoramaUrls: [defaultRoomImage]
     });
 
-    console.log('초기 데이터가 성공적으로 추가되었습니다.');
-    process.exit(0);
+    console.log('데이터 시딩이 완료되었습니다.');
   } catch (error) {
-    console.error('데이터 추가 중 오류가 발생했습니다:', error);
-    process.exit(1);
+    console.error('데이터 시딩 중 에러 발생:', error);
+  } finally {
+    await mongoose.disconnect();
   }
 }
 

@@ -1,1 +1,12 @@
+<<<<<<< HEAD
  
+=======
+[build]
+  command = "CI=false npm run build"
+  publish = "build"
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200 
+>>>>>>> 0282ec32634cd33da6e775ee53973250ec8b757b

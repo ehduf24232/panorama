@@ -156,6 +156,10 @@ const PanoramaViewer: React.FC<PanoramaViewerProps> = ({ panoramas }) => {
   const [isLoading, setIsLoading] = React.useState(true);
   const [currentPanoramaIndex, setCurrentPanoramaIndex] = useState(0);
   const sphereRef = useRef<THREE.Mesh | null>(null);
+<<<<<<< HEAD
+=======
+  const distanceRef = useRef(100); // 카메라와 구체 사이의 거리
+>>>>>>> 0282ec32634cd33da6e775ee53973250ec8b757b
 
   useEffect(() => {
     if (!containerRef.current || panoramas.length === 0) return;
@@ -191,9 +195,15 @@ const PanoramaViewer: React.FC<PanoramaViewerProps> = ({ panoramas }) => {
       phi = THREE.MathUtils.degToRad(90 - lat);
       theta = THREE.MathUtils.degToRad(lon);
 
+<<<<<<< HEAD
       camera.position.x = 100 * Math.sin(phi) * Math.cos(theta);
       camera.position.y = 100 * Math.cos(phi);
       camera.position.z = 100 * Math.sin(phi) * Math.sin(theta);
+=======
+      camera.position.x = distanceRef.current * Math.sin(phi) * Math.cos(theta);
+      camera.position.y = distanceRef.current * Math.cos(phi);
+      camera.position.z = distanceRef.current * Math.sin(phi) * Math.sin(theta);
+>>>>>>> 0282ec32634cd33da6e775ee53973250ec8b757b
 
       camera.lookAt(scene.position);
       renderer.render(scene, camera);
@@ -227,10 +237,25 @@ const PanoramaViewer: React.FC<PanoramaViewerProps> = ({ panoramas }) => {
       isUserInteracting = false;
     };
 
+<<<<<<< HEAD
+=======
+    // 마우스 휠 이벤트 처리
+    const onWheel = (event: WheelEvent) => {
+      event.preventDefault();
+      const delta = event.deltaY;
+      // 확대/축소 범위 제한 (50 ~ 200)
+      distanceRef.current = Math.max(50, Math.min(200, distanceRef.current + delta * 0.1));
+    };
+
+>>>>>>> 0282ec32634cd33da6e775ee53973250ec8b757b
     // 이벤트 리스너 등록
     container.addEventListener('mousedown', onPointerDown);
     container.addEventListener('mousemove', onPointerMove);
     container.addEventListener('mouseup', onPointerUp);
+<<<<<<< HEAD
+=======
+    container.addEventListener('wheel', onWheel, { passive: false });
+>>>>>>> 0282ec32634cd33da6e775ee53973250ec8b757b
 
     // 창 크기 변경 처리
     const handleResize = () => {
@@ -252,6 +277,10 @@ const PanoramaViewer: React.FC<PanoramaViewerProps> = ({ panoramas }) => {
         container.removeEventListener('mousedown', onPointerDown);
         container.removeEventListener('mousemove', onPointerMove);
         container.removeEventListener('mouseup', onPointerUp);
+<<<<<<< HEAD
+=======
+        container.removeEventListener('wheel', onWheel);
+>>>>>>> 0282ec32634cd33da6e775ee53973250ec8b757b
       }
       window.removeEventListener('resize', handleResize);
       if (rendererRef.current) {

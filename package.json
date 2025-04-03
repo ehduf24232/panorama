@@ -19,7 +19,11 @@
     "html-webpack-plugin": "^5.6.3",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
+<<<<<<< HEAD
     "react-router-dom": "^7.4.0",
+=======
+    "react-router-dom": "^6.22.1",
+>>>>>>> 0282ec32634cd33da6e775ee53973250ec8b757b
     "react-scripts": "^5.0.1",
     "source-map-loader": "^5.0.0",
     "styled-components": "^6.1.16",

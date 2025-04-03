@@ -4,6 +4,10 @@ import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
 import Room from '../models/Room';
+import { GridFSBucket } from 'mongodb';
+import mongoose from 'mongoose';
+import { gfs } from '../index';
+import Building from '../models/Building';
 
 const router = Router();
 
@@ -105,18 +109,22 @@ router.post('/', upload.fields([
 
     let imageUrl = '';
     if (files && files['image'] && files['image'][0]) {
-      imageUrl = `/uploads/rooms/${path.basename(files['image'][0].path)}`;
-      console.log('[호실 등록] 이미지 URL:', imageUrl);
+      const filename = `${Date.now()}-${files['image'][0].originalname}`;
+      const writeStream = gfs.openUploadStream(filename, {
+        contentType: files['image'][0].mimetype
+      });
+      writeStream.write(files['image'][0].buffer);
+      writeStream.end();
+      imageUrl = `/api/images/${filename}`;
     }
     
     let panoramas: { url: string; tag: string }[] = [];
     if (files && files['panoramas']) {
       const tags = panoramaTags ? JSON.parse(panoramaTags) : [];
       panoramas = files['panoramas'].map((file, index) => ({
-        url: `/uploads/panoramas/${path.basename(file.path)}`,
+        url: `/api/images/${Date.now()}-${file.originalname}`,
         tag: tags[index] || ''
       }));
-      console.log('[호실 등록] 파노라마 URLs:', panoramas);
     }
 
     const room = new Room({
@@ -148,22 +156,28 @@ router.delete('/:id', async (req, res) => {
       return res.status(404).json({ message: '방을 찾을 수 없습니다.' });
     }
 
-    // 이미지 파일 삭제
+    // 이미지 삭제
     if (room.imageUrl) {
-      const imagePath = path.join(__dirname, '../../', room.imageUrl);
-      if (fs.existsSync(imagePath)) {
-        fs.unlinkSync(imagePath);
+      const filename = room.imageUrl.split('/').pop();
+      if (filename) {
+        const files = await gfs.find({ filename }).toArray();
+        if (files.length > 0) {
+          await gfs.delete(files[0]._id);
+        }
       }
     }
 
-    // 파노라마 파일들 삭제
+    // 파노라마 이미지 삭제
     if (room.panoramas && room.panoramas.length > 0) {
-      room.panoramas.forEach(panorama => {
-        const panoramaPath = path.join(__dirname, '../../', panorama.url);
-        if (fs.existsSync(panoramaPath)) {
-          fs.unlinkSync(panoramaPath);
+      await Promise.all(room.panoramas.map(async (panorama) => {
+        const filename = panorama.url.split('/').pop();
+        if (filename) {
+          const files = await gfs.find({ filename }).toArray();
+          if (files.length > 0) {
+            await gfs.delete(files[0]._id);
+          }
         }
-      });
+      }));
     }
 
     // 방 삭제
@@ -202,31 +216,43 @@ router.put('/:id', upload.fields([
     if (files && files['image']) {
       // 기존 이미지 삭제
       if (room.imageUrl) {
-        const oldImagePath = path.join(__dirname, '../../', room.imageUrl);
-        if (fs.existsSync(oldImagePath)) {
-          fs.unlinkSync(oldImagePath);
+        const filename = room.imageUrl.split('/').pop();
+        if (filename) {
+          const files = await gfs.find({ filename }).toArray();
+          if (files.length > 0) {
+            await gfs.delete(files[0]._id);
+          }
         }
       }
       // 새 이미지 URL 설정
-      updateData.imageUrl = `/uploads/rooms/${path.basename(files['image'][0].path)}`;
+      const filename = `${Date.now()}-${files['image'][0].originalname}`;
+      const writeStream = gfs.openUploadStream(filename, {
+        contentType: files['image'][0].mimetype
+      });
+      writeStream.write(files['image'][0].buffer);
+      writeStream.end();
+      updateData.imageUrl = `/api/images/${filename}`;
     }
 
     // 새 파노라마가 업로드된 경우
     if (files && files['panoramas']) {
       // 기존 파노라마 파일들 삭제
       if (room.panoramas && room.panoramas.length > 0) {
-        room.panoramas.forEach(panorama => {
-          const oldPanoramaPath = path.join(__dirname, '../../', panorama.url);
-          if (fs.existsSync(oldPanoramaPath)) {
-            fs.unlinkSync(oldPanoramaPath);
+        await Promise.all(room.panoramas.map(async (panorama) => {
+          const filename = panorama.url.split('/').pop();
+          if (filename) {
+            const files = await gfs.find({ filename }).toArray();
+            if (files.length > 0) {
+              await gfs.delete(files[0]._id);
+            }
           }
-        });
+        }));
       }
 
       // 새 파노라마 URL과 태그 설정
       const panoramaTags = req.body.panoramaTags ? JSON.parse(req.body.panoramaTags) : [];
       updateData.panoramas = files['panoramas'].map((file, index) => ({
-        url: `/uploads/panoramas/${path.basename(file.path)}`,
+        url: `/api/images/${Date.now()}-${file.originalname}`,
         tag: panoramaTags[index] || ''
       }));
     }

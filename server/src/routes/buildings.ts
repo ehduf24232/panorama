@@ -1,68 +1,157 @@
 import express from 'express';
-import multer from 'multer';
-import path from 'path';
-import fs from 'fs';
 import Building from '../models/Building';
-import Room from '../models/Room';
+import multer from 'multer';
+import { GridFSBucket } from 'mongodb';
+import mongoose from 'mongoose';
+import { gfs } from '../index';
 
 const router = express.Router();
 
-// 이미지 저장을 위한 multer 설정
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    const uploadDir = 'uploads/buildings';
-    if (!fs.existsSync(uploadDir)) {
-      fs.mkdirSync(uploadDir, { recursive: true });
-    }
-    cb(null, uploadDir);
-  },
-  filename: (req, file, cb) => {
-    cb(null, `${Date.now()}${path.extname(file.originalname)}`);
+// Multer 설정
+const storage = multer.memoryStorage();
+const upload = multer({ storage });
+
+// GridFS 버킷 초기화
+let bucket: GridFSBucket | null = null;
+
+// MongoDB 연결이 완료된 후 GridFS 버킷 초기화
+mongoose.connection.once('open', () => {
+  if (mongoose.connection.db) {
+    bucket = new GridFSBucket(mongoose.connection.db, {
+      bucketName: 'uploads'
+    });
+    console.log('GridFS 버킷이 초기화되었습니다.');
   }
 });
 
-const upload = multer({ storage });
-
-// 모든 건물 조회
+// 건물 목록 조회
 router.get('/', async (req, res) => {
   try {
-    const buildings = await Building.find().sort({ name: 1 });
+    const buildings = await Building.find();
     res.json(buildings);
-  } catch (error) {
-    res.status(500).json({ message: '건물 목록을 가져오는데 실패했습니다.' });
+  } catch (error: any) {
+    console.error('건물 조회 에러:', error);
+    res.status(500).json({ success: false, message: '건물 조회 중 오류가 발생했습니다.' });
   }
 });
 
 // 동네별 건물 조회
 router.get('/neighborhood/:neighborhoodId', async (req, res) => {
   try {
-    const buildings = await Building.find({ neighborhoodId: req.params.neighborhoodId }).sort({ name: 1 });
+    console.log('[동네별 건물 조회] 동네 ID:', req.params.neighborhoodId);
+    const buildings = await Building.find({ neighborhoodId: req.params.neighborhoodId });
+    console.log('[동네별 건물 조회] 결과:', buildings);
     res.json(buildings);
   } catch (error) {
-    console.error('동네별 건물 목록 조회 에러:', error);
-    res.status(500).json({ message: '건물 목록을 가져오는데 실패했습니다.' });
+    console.error('[동네별 건물 조회 에러]:', error);
+    res.status(500).json({ message: '건물 목록 조회에 실패했습니다.' });
   }
 });
 
 // 건물 추가
 router.post('/', upload.single('image'), async (req, res) => {
   try {
-    const { name, neighborhoodId, address, floors, description } = req.body;
-    const imageUrl = req.file ? `/uploads/buildings/${req.file.filename}` : '';
+    console.log('건물 추가 요청:', {
+      body: req.body,
+      file: req.file ? {
+        fieldname: req.file.fieldname,
+        originalname: req.file.originalname,
+        mimetype: req.file.mimetype,
+        size: req.file.size
+      } : null
+    });
+
+    const { name, neighborhoodId, address, floors } = req.body;
+
+    // 필수 필드 검증
+    if (!name || !neighborhoodId || !address || !floors) {
+      console.error('필수 필드 누락:', { name, neighborhoodId, address, floors });
+      return res.status(400).json({ 
+        success: false, 
+        message: '이름, 동네ID, 주소, 층수는 필수 입력 항목입니다.' 
+      });
+    }
+
+    // 층수 숫자 검증
+    if (isNaN(Number(floors))) {
+      console.error('층수 형식 오류:', floors);
+      return res.status(400).json({ 
+        success: false, 
+        message: '층수는 숫자여야 합니다.' 
+      });
+    }
+
+    let imageUrl = '';
+    if (req.file && bucket) {
+      const filename = `${Date.now()}-${req.file.originalname}`;
+      const uploadStream = bucket.openUploadStream(filename, {
+        contentType: req.file.mimetype
+      });
+      
+      uploadStream.write(req.file.buffer);
+      uploadStream.end();
+      
+      imageUrl = `/api/images/${filename}`;
+      console.log('이미지 업로드 성공:', { filename, imageUrl });
+    }
 
     const building = new Building({
       name,
       neighborhoodId,
       address,
-      floors: parseInt(floors),
-      description,
+      floors: Number(floors),
       imageUrl
     });
 
+    const savedBuilding = await building.save();
+    console.log('건물 저장 성공:', savedBuilding);
+    
+    res.status(201).json({ 
+      success: true, 
+      building: savedBuilding 
+    });
+  } catch (error: any) {
+    console.error('건물 저장 에러:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: '건물 저장 중 오류가 발생했습니다.' 
+    });
+  }
+});
+
+// 건물 수정
+router.put('/:id', upload.single('image'), async (req, res) => {
+  try {
+    const { name, neighborhoodId, address, floors, description } = req.body;
+    const building = await Building.findById(req.params.id);
+
+    if (!building) {
+      return res.status(404).json({ message: '건물을 찾을 수 없습니다.' });
+    }
+
+    if (req.file) {
+      const filename = `${Date.now()}-${req.file.originalname}`;
+      const writeStream = gfs.openUploadStream(filename, {
+        contentType: req.file.mimetype
+      });
+
+      writeStream.write(req.file.buffer);
+      writeStream.end();
+
+      building.imageUrl = `/api/images/${filename}`;
+    }
+
+    building.name = name;
+    building.neighborhoodId = neighborhoodId;
+    building.address = address;
+    building.floors = parseInt(floors);
+    building.description = description;
+
     await building.save();
-    res.status(201).json(building);
+    res.json(building);
   } catch (error) {
-    res.status(500).json({ message: '건물 추가에 실패했습니다.' });
+    console.error('[건물 수정 에러]:', error);
+    res.status(500).json({ message: '건물 수정에 실패했습니다.' });
   }
 });
 
@@ -70,70 +159,26 @@ router.post('/', upload.single('image'), async (req, res) => {
 router.delete('/:id', async (req, res) => {
   try {
     const building = await Building.findById(req.params.id);
+
     if (!building) {
       return res.status(404).json({ message: '건물을 찾을 수 없습니다.' });
     }
 
-    // 이미지 파일 삭제
     if (building.imageUrl) {
-      const imagePath = path.join(__dirname, '../../', building.imageUrl);
-      if (fs.existsSync(imagePath)) {
-        fs.unlinkSync(imagePath);
-      }
-    }
-
-    // 관련된 방들 삭제
-    await Room.deleteMany({ buildingId: req.params.id });
-
-    // 건물 삭제
-    await building.deleteOne();
-
-    res.json({ message: '건물이 성공적으로 삭제되었습니다.' });
-  } catch (error) {
-    res.status(500).json({ message: '건물 삭제에 실패했습니다.' });
-  }
-});
-
-// 건물 수정
-router.put('/:id', upload.single('image'), async (req, res) => {
-  try {
-    const building = await Building.findById(req.params.id);
-    if (!building) {
-      return res.status(404).json({ message: '건물을 찾을 수 없습니다.' });
-    }
-
-    const updateData: any = {
-      name: req.body.name,
-      neighborhoodId: req.body.neighborhoodId,
-      address: req.body.address,
-      floors: parseInt(req.body.floors),
-      description: req.body.description
-    };
-
-    // 새 이미지가 업로드된 경우
-    if (req.file) {
-      // 기존 이미지 삭제
-      if (building.imageUrl) {
-        const oldImagePath = path.join(__dirname, '../../', building.imageUrl);
-        if (fs.existsSync(oldImagePath)) {
-          fs.unlinkSync(oldImagePath);
+      const filename = building.imageUrl.split('/').pop();
+      if (filename) {
+        const files = await gfs.find({ filename }).toArray();
+        if (files.length > 0) {
+          await gfs.delete(files[0]._id);
         }
       }
-      // 새 이미지 URL 설정
-      updateData.imageUrl = `/uploads/buildings/${req.file.filename}`;
     }
 
-    const updatedBuilding = await Building.findByIdAndUpdate(
-      req.params.id,
-      updateData,
-      { new: true }
-    );
-
-    console.log('건물 수정:', updatedBuilding);
-    res.json(updatedBuilding);
+    await building.deleteOne();
+    res.json({ message: '건물이 성공적으로 삭제되었습니다.' });
   } catch (error) {
-    console.error('건물 수정 에러:', error);
-    res.status(500).json({ message: '건물 수정에 실패했습니다.' });
+    console.error('[건물 삭제 에러]:', error);
+    res.status(500).json({ message: '건물 삭제에 실패했습니다.' });
   }
 });
 
