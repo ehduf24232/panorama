@@ -5,6 +5,7 @@ import axios from 'axios';
 import { Chat as ChatIcon } from '@mui/icons-material';
 import HomeButton from '../components/HomeButton';
 import CustomLinkButton from '../components/CustomLinkButton';
+import api from '../api';
 
 const GlobalStyle = createGlobalStyle`
   body {
@@ -186,7 +187,7 @@ const BuildingsPage = () => {
   useEffect(() => {
     const fetchBuildings = async () => {
       try {
-        const response = await axios.get(`http://localhost:5000/api/buildings/neighborhood/${neighborhoodId}`);
+        const response = await api.get(`/api/buildings/neighborhood/${neighborhoodId}`);
         setBuildings(response.data);
       } catch (error) {
         console.error('건물 목록을 불러오는데 실패했습니다:', error);
@@ -219,7 +220,7 @@ const BuildingsPage = () => {
                 onClick={() => navigate(`/neighborhoods/${neighborhoodId}/buildings/${building._id}/rooms`)}
               >
                 <BuildingImage
-                  src={`http://localhost:5000${building.imageUrl}`}
+                  src={`${process.env.REACT_APP_API_URL || 'https://panorama-backend.onrender.com'}${building.imageUrl}`}
                   alt={building.name}
                   onError={(e) => {
                     console.error('이미지 로드 실패:', building.name);

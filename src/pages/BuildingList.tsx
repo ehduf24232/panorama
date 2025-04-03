@@ -4,6 +4,7 @@ import { useParams, Link } from 'react-router-dom';
 import axios from 'axios';
 import { Chat as ChatIcon } from '@mui/icons-material';
 import CustomLinkButton from '../components/CustomLinkButton';
+import api from '../api';
 
 const Container = styled.div`
   display: flex;
@@ -117,7 +118,7 @@ const BuildingList = () => {
   useEffect(() => {
     const fetchBuildings = async () => {
       try {
-        const response = await axios.get(`http://localhost:5000/api/buildings/neighborhood/${neighborhoodId}`);
+        const response = await api.get(`/api/buildings/neighborhood/${neighborhoodId}`);
         setBuildings(response.data);
       } catch (error) {
         console.error('건물 목록을 불러오는데 실패했습니다:', error);
@@ -143,7 +144,7 @@ const BuildingList = () => {
         {buildings.map((building) => (
           <BuildingCard key={building._id} to={`/rooms/${building._id}`}>
             <BuildingImage 
-              src={`http://localhost:5000${building.imageUrl}`} 
+              src={`${process.env.REACT_APP_API_URL || 'https://panorama-backend.onrender.com'}${building.imageUrl}`} 
               alt={building.name} 
             />
             <BuildingInfo>
