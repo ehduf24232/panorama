@@ -273,7 +273,7 @@ const AdminPage: React.FC = () => {
   // 동네 관련 함수들
   const fetchNeighborhoods = async () => {
     try {
-      const response = await api.get('/neighborhoods');
+      const response = await api.get('/api/neighborhoods');
       setNeighborhoods(response.data);
     } catch (error) {
       console.error('동네 목록을 불러오는데 실패했습니다:', error);
@@ -290,16 +290,15 @@ const AdminPage: React.FC = () => {
         formData.append('image', neighborhoodImage);
       }
 
-      let response;
       if (editingNeighborhoodId) {
-        response = await api.put(`/neighborhoods/${editingNeighborhoodId}`, formData, {
+        await api.put(`/api/neighborhoods/${editingNeighborhoodId}`, formData, {
           headers: {
             'Content-Type': 'multipart/form-data'
           }
         });
         setMessage('동네가 성공적으로 수정되었습니다.');
       } else {
-        response = await api.post('/api/neighborhoods', formData, {
+        await api.post('/api/neighborhoods', formData, {
           headers: {
             'Content-Type': 'multipart/form-data'
           }
@@ -311,8 +310,8 @@ const AdminPage: React.FC = () => {
       setNeighborhoodName('');
       setNeighborhoodDescription('');
       setNeighborhoodImage(null);
-      setEditingNeighborhoodId(null);
-
+      setEditingNeighborhoodId('');
+      
       // 동네 목록 새로고침
       fetchNeighborhoods();
     } catch (error) {
@@ -323,14 +322,12 @@ const AdminPage: React.FC = () => {
 
   const handleNeighborhoodDelete = async (id: string) => {
     try {
-      await api.delete(`/neighborhoods/${id}`);
+      await api.delete(`/api/neighborhoods/${id}`);
       setMessage('동네가 성공적으로 삭제되었습니다.');
-      setIsError(false);
       fetchNeighborhoods();
     } catch (error) {
-      console.error('동네 삭제 중 오류 발생:', error);
+      console.error('동네 삭제 에러:', error);
       setMessage('동네 삭제에 실패했습니다.');
-      setIsError(true);
     }
   };
 
