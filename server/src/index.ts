@@ -22,7 +22,7 @@ app.use(cors({
   origin: 'https://realestate-panorama.netlify.app',
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
+  allowedHeaders: ['Content-Type', 'Authorization', 'Access-Control-Allow-Origin', 'Access-Control-Allow-Credentials']
 }));
 
 // 요청 헤더 로깅 미들웨어
