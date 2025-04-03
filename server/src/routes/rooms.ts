@@ -109,22 +109,47 @@ router.post('/', upload.fields([
 
     let imageUrl = '';
     if (files && files['image'] && files['image'][0]) {
-      const filename = `${Date.now()}-${files['image'][0].originalname}`;
-      const writeStream = gfs.openUploadStream(filename, {
-        contentType: files['image'][0].mimetype
+      const file = files['image'][0];
+      const filename = `${Date.now()}-${file.originalname}`;
+      const uploadStream = gfs.openUploadStream(filename, {
+        contentType: file.mimetype
       });
-      writeStream.write(files['image'][0].buffer);
-      writeStream.end();
+      
+      // 파일 스트림을 사용하여 업로드
+      const fileStream = fs.createReadStream(file.path);
+      fileStream.pipe(uploadStream);
+      
+      await new Promise((resolve, reject) => {
+        uploadStream.on('finish', resolve);
+        uploadStream.on('error', reject);
+      });
+      
       imageUrl = `/api/images/${filename}`;
     }
     
     let panoramas: { url: string; tag: string }[] = [];
     if (files && files['panoramas']) {
       const tags = panoramaTags ? JSON.parse(panoramaTags) : [];
-      panoramas = files['panoramas'].map((file, index) => ({
-        url: `/api/images/${Date.now()}-${file.originalname}`,
-        tag: tags[index] || ''
-      }));
+      for (let i = 0; i < files['panoramas'].length; i++) {
+        const file = files['panoramas'][i];
+        const filename = `${Date.now()}-${file.originalname}`;
+        const uploadStream = gfs.openUploadStream(filename, {
+          contentType: file.mimetype
+        });
+        
+        const fileStream = fs.createReadStream(file.path);
+        fileStream.pipe(uploadStream);
+        
+        await new Promise((resolve, reject) => {
+          uploadStream.on('finish', resolve);
+          uploadStream.on('error', reject);
+        });
+        
+        panoramas.push({
+          url: `/api/images/${filename}`,
+          tag: tags[i] || ''
+        });
+      }
     }
 
     const room = new Room({
