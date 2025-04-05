@@ -276,19 +276,18 @@ const ConsultationPage: React.FC = () => {
             </FormGroup>
 
             <FormGroup>
-              <Label htmlFor="budget">예산(만 원)</Label>
+              <Label htmlFor="budget">예산(만 원)(선택)</Label>
               <Input
                 type="text"
                 id="budget"
                 name="budget"
                 value={formData.budget}
                 onChange={handleChange}
-                required
               />
             </FormGroup>
 
             <FormGroup>
-              <Label htmlFor="message">추가문의사항</Label>
+              <Label htmlFor="message">추가문의사항(선택)</Label>
               <TextArea
                 id="message"
                 name="message"

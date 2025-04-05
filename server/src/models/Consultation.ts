@@ -20,10 +20,11 @@ const consultationSchema = new mongoose.Schema({
   },
   budget: {
     type: String,
-    required: true
+    required: false
   },
   message: {
-    type: String
+    type: String,
+    required: false
   },
   createdAt: {
     type: Date,
