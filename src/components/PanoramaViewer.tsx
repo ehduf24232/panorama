@@ -129,6 +129,8 @@ const PanoramaButton = styled.button<{ isActive?: boolean }>`
   font-size: 13px;
   transition: all 0.3s ease;
   margin: 0 4px;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
 
   &:hover {
     background: rgba(255, 255, 255, 0.1);
@@ -136,6 +138,11 @@ const PanoramaButton = styled.button<{ isActive?: boolean }>`
 
   &:active {
     background: rgba(255, 255, 255, 0.2);
+  }
+
+  @media (max-width: 768px) {
+    padding: 8px 16px;
+    font-size: 14px;
   }
 `;
 
@@ -210,6 +217,10 @@ const PanoramaViewer: React.FC<PanoramaViewerProps> = ({ panoramas }) => {
     let onPointerDownLat = 0;
 
     const onPointerDown = (event: MouseEvent | TouchEvent) => {
+      if (event.target instanceof HTMLButtonElement) {
+        return;
+      }
+      
       event.preventDefault();
       isUserInteracting = true;
       
@@ -243,7 +254,10 @@ const PanoramaViewer: React.FC<PanoramaViewerProps> = ({ panoramas }) => {
       lat = (clientY - onPointerDownMouseY) * 0.1 + onPointerDownLat;
     };
 
-    const onPointerUp = () => {
+    const onPointerUp = (event: MouseEvent | TouchEvent) => {
+      if (event.target instanceof HTMLButtonElement) {
+        return;
+      }
       isUserInteracting = false;
     };
 
@@ -256,9 +270,9 @@ const PanoramaViewer: React.FC<PanoramaViewerProps> = ({ panoramas }) => {
     };
 
     // 이벤트 리스너 등록
-    container.addEventListener('mousedown', onPointerDown, { passive: false });
-    container.addEventListener('mousemove', onPointerMove, { passive: false });
-    container.addEventListener('mouseup', onPointerUp, { passive: false });
+    container.addEventListener('mousedown', onPointerDown);
+    container.addEventListener('mousemove', onPointerMove);
+    container.addEventListener('mouseup', onPointerUp);
     container.addEventListener('wheel', onWheel, { passive: false });
     
     // 터치 이벤트 리스너 등록
