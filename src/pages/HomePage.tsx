@@ -75,6 +75,21 @@ const Title = styled.h1`
   font-weight: 700;
   text-align: center;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+  
+  @media (max-width: 768px) {
+    font-size: 2.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+`;
+
+const TitleLine = styled.span`
+  display: inline-block;
+  
+  @media (max-width: 768px) {
+    display: block;
+  }
 `;
 
 const Button = styled.button`
@@ -147,7 +162,10 @@ const HomePage = () => {
           상담신청
         </ConsultButton>
         <ContentWrapper>
-          <Title>파노라마 부동산</Title>
+          <Title>
+            <TitleLine>부동산</TitleLine>
+            <TitleLine>파노라마</TitleLine>
+          </Title>
           <Button onClick={() => navigate('/neighborhoods')}>
             매물 보러가기
           </Button>
