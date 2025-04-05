@@ -20,7 +20,7 @@ const Container = styled.div`
   flex-direction: column;
   align-items: center;
   min-height: 100vh;
-  padding: 2rem;
+  padding: 4rem 1rem 2rem 1rem;
   background: linear-gradient(135deg, #000000 0%, #1a0033 100%);
   position: relative;
   overflow: hidden;
