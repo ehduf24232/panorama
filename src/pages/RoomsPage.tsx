@@ -6,6 +6,9 @@ import HomeButton from '../components/HomeButton';
 import CustomLinkButton from '../components/CustomLinkButton';
 import api from '../api';
 
+// API_BASE_URL 가져오기
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://panorama-backend.onrender.com';
+
 const GlobalStyle = createGlobalStyle`
   body {
     margin: 0;
@@ -223,7 +226,7 @@ const RoomsPage = () => {
                 onClick={() => navigate(`/rooms/${room._id}/panorama`)}
               >
                 <RoomImage
-                  src={`${process.env.REACT_APP_API_URL || 'https://panorama-backend.onrender.com'}${room.imageUrl}`}
+                  src={`${API_BASE_URL}${room.imageUrl}`}
                   alt={room.name}
                   onError={(e) => {
                     console.error('이미지 로드 실패:', room.name);

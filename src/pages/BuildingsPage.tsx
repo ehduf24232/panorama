@@ -7,6 +7,9 @@ import HomeButton from '../components/HomeButton';
 import CustomLinkButton from '../components/CustomLinkButton';
 import api from '../api';
 
+// API_BASE_URL 가져오기
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://panorama-backend.onrender.com';
+
 const GlobalStyle = createGlobalStyle`
   body {
     margin: 0;
@@ -17,14 +20,14 @@ const GlobalStyle = createGlobalStyle`
 `;
 
 const Container = styled.div`
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  min-height: 100vh;
   padding: 2rem;
+  min-height: 100vh;
   background: linear-gradient(135deg, #000000 0%, #1a0033 100%);
   position: relative;
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 
   @media (max-width: 768px) {
     padding: 4rem 1rem 2rem 1rem;
@@ -67,7 +70,7 @@ const Container = styled.div`
 
 const ContentWrapper = styled.div`
   position: relative;
-  z-index: 1;
+  z-index: 10;
   width: 100%;
   max-width: 1200px;
 `;
@@ -226,7 +229,7 @@ const BuildingsPage = () => {
                 onClick={() => navigate(`/neighborhoods/${neighborhoodId}/buildings/${building._id}/rooms`)}
               >
                 <BuildingImage
-                  src={`${process.env.REACT_APP_API_URL || 'https://panorama-backend.onrender.com'}${building.imageUrl}`}
+                  src={`${API_BASE_URL}${building.imageUrl}`}
                   alt={building.name}
                   onError={(e) => {
                     console.error('이미지 로드 실패:', building.name);
