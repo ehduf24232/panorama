@@ -75,24 +75,24 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const fetchBuildingsByNeighborhood = useCallback(async (neighborhoodId: string) => {
     try {
-      console.log('[건물 데이터 요청]', { neighborhoodId });
+      console.log('[API 요청] 건물 목록 가져오기:', { neighborhoodId });
       const response = await api.get(`/api/buildings/neighborhood/${neighborhoodId}`);
-      console.log('[건물 데이터 응답]', response.data);
+      console.log('[API 응답] 건물 목록:', response.data);
       setBuildings(response.data);
     } catch (error) {
-      console.error('건물 데이터 로딩 중 오류 발생:', error);
+      console.error('[API 오류] 건물 목록 가져오기 실패:', error);
       throw error;
     }
   }, []);
 
   const fetchRoomsByBuilding = useCallback(async (buildingId: string) => {
     try {
-      console.log('[호실 데이터 요청]', { buildingId });
+      console.log('[API 요청] 방 목록 가져오기:', { buildingId });
       const response = await api.get(`/api/rooms/building/${buildingId}`);
-      console.log('[호실 데이터 응답]', response.data);
+      console.log('[API 응답] 방 목록:', response.data);
       setRooms(response.data);
     } catch (error) {
-      console.error('호실 데이터 로딩 중 오류 발생:', error);
+      console.error('[API 오류] 방 목록 가져오기 실패:', error);
       throw error;
     }
   }, []);
