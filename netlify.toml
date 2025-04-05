@@ -10,17 +10,17 @@
   GENERATE_SOURCEMAP = "false"
 
 [[redirects]]
-  from = "/neighborhoods/*"
+  from = "/neighborhoods/:neighborhoodId/buildings"
   to = "/index.html"
   status = 200
 
 [[redirects]]
-  from = "/buildings/*"
+  from = "/neighborhoods/:neighborhoodId/buildings/:buildingId/rooms"
   to = "/index.html"
   status = 200
 
 [[redirects]]
-  from = "/rooms/*"
+  from = "/rooms/:roomId/panorama"
   to = "/index.html"
   status = 200
 
