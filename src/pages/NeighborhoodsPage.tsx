@@ -1,10 +1,13 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styled, { createGlobalStyle } from 'styled-components';
 import { useData } from '../contexts/DataContext';
 import ConsultButton from '../components/ConsultButton';
 import HomeButton from '../components/HomeButton';
 import CustomLinkButton from '../components/CustomLinkButton';
+
+// API_BASE_URL 가져오기
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://panorama-backend.onrender.com';
 
 const GlobalStyle = createGlobalStyle`
   body {
@@ -130,7 +133,26 @@ const CardDescription = styled.p`
 
 const NeighborhoodsPage: React.FC = () => {
   const navigate = useNavigate();
-  const { neighborhoods } = useData();
+  const { neighborhoods, fetchNeighborhoods } = useData();
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const loadNeighborhoods = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        await fetchNeighborhoods();
+      } catch (error) {
+        console.error('동네 목록을 불러오는데 실패했습니다:', error);
+        setError('동네 목록을 불러오는데 실패했습니다. 잠시 후 다시 시도해주세요.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadNeighborhoods();
+  }, [fetchNeighborhoods]);
 
   const getImageUrl = (imageUrl: string) => {
     if (!imageUrl) {
@@ -138,14 +160,10 @@ const NeighborhoodsPage: React.FC = () => {
       return '/placeholder.png';
     }
 
-    const fullUrl = `http://localhost:5000${imageUrl}`;
+    const fullUrl = `${API_BASE_URL}${imageUrl}`;
     console.log('[이미지 URL] 생성된 전체 URL:', fullUrl);
     return fullUrl;
   };
-
-  useEffect(() => {
-    console.log('[동네 데이터]', neighborhoods);
-  }, [neighborhoods]);
 
   return (
     <>
@@ -156,30 +174,38 @@ const NeighborhoodsPage: React.FC = () => {
         <CustomLinkButton />
         <ContentWrapper>
           <Title>동네를 선택해주세요</Title>
-          <CardGrid>
-            {neighborhoods && neighborhoods.map((neighborhood) => (
-              <Card 
-                key={neighborhood._id} 
-                onClick={() => navigate(`/neighborhoods/${neighborhood._id}/buildings`)}
-              >
-                <CardImage
-                  src={getImageUrl(neighborhood.imageUrl)}
-                  alt={neighborhood.name}
-                  onError={(e) => {
-                    console.error('[이미지 로드 실패]', {
-                      동네: neighborhood.name,
-                      URL: neighborhood.imageUrl
-                    });
-                    (e.target as HTMLImageElement).src = '/placeholder.png';
-                  }}
-                />
-                <CardContent>
-                  <CardTitle>{neighborhood.name}</CardTitle>
-                  <CardDescription>{neighborhood.description}</CardDescription>
-                </CardContent>
-              </Card>
-            ))}
-          </CardGrid>
+          {loading ? (
+            <div style={{ textAlign: 'center', color: 'white', marginTop: '2rem' }}>로딩 중...</div>
+          ) : error ? (
+            <div style={{ textAlign: 'center', color: 'white', marginTop: '2rem' }}>{error}</div>
+          ) : neighborhoods.length === 0 ? (
+            <div style={{ textAlign: 'center', color: 'white', marginTop: '2rem' }}>등록된 동네가 없습니다.</div>
+          ) : (
+            <CardGrid>
+              {neighborhoods.map((neighborhood) => (
+                <Card 
+                  key={neighborhood._id} 
+                  onClick={() => navigate(`/neighborhoods/${neighborhood._id}/buildings`)}
+                >
+                  <CardImage
+                    src={getImageUrl(neighborhood.imageUrl)}
+                    alt={neighborhood.name}
+                    onError={(e) => {
+                      console.error('[이미지 로드 실패]', {
+                        동네: neighborhood.name,
+                        URL: neighborhood.imageUrl
+                      });
+                      (e.target as HTMLImageElement).src = '/placeholder.png';
+                    }}
+                  />
+                  <CardContent>
+                    <CardTitle>{neighborhood.name}</CardTitle>
+                    <CardDescription>{neighborhood.description}</CardDescription>
+                  </CardContent>
+                </Card>
+              ))}
+            </CardGrid>
+          )}
         </ContentWrapper>
       </Container>
     </>

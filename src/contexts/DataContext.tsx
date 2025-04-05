@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import api from '../api';
 import { isAxiosError } from 'axios';
+import axios from 'axios';
 
 // 타입 정의
 export interface Neighborhood {
@@ -46,6 +47,7 @@ interface DataContextType {
   deleteBuilding: (id: string) => Promise<void>;
   addRoom: (formData: FormData) => Promise<void>;
   deleteRoom: (id: string) => Promise<void>;
+  fetchNeighborhoods: () => Promise<void>;
   fetchBuildingsByNeighborhood: (neighborhoodId: string) => Promise<void>;
   fetchRoomsByBuilding: (buildingId: string) => Promise<void>;
 }
@@ -57,46 +59,19 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [buildings, setBuildings] = useState<Building[]>([]);
   const [rooms, setRooms] = useState<Room[]>([]);
 
-  useEffect(() => {
-    fetchData();
-  }, []);
+  const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://panorama-backend.onrender.com';
 
-  const fetchData = async () => {
+  const fetchNeighborhoods = useCallback(async () => {
     try {
-      console.log('데이터 로딩 시작');
-
-      // 각 API 호출을 개별적으로 처리
-      try {
-        const neighborhoodsRes = await api.get('/api/neighborhoods');
-        console.log('동네 데이터 응답:', neighborhoodsRes.data);
-        setNeighborhoods(neighborhoodsRes.data);
-      } catch (error) {
-        console.error('동네 데이터 로딩 실패:', error);
-      }
-
-      try {
-        const buildingsRes = await api.get('/api/buildings');
-        console.log('건물 데이터 응답:', buildingsRes.data);
-        setBuildings(buildingsRes.data);
-      } catch (error) {
-        console.error('건물 데이터 로딩 실패:', error);
-      }
-
-      try {
-        const roomsRes = await api.get('/api/rooms');
-        console.log('호실 데이터 응답:', roomsRes.data);
-        setRooms(roomsRes.data);
-      } catch (error) {
-        console.error('호실 데이터 로딩 실패:', error);
-      }
-
+      console.log('[API 요청] 동네 목록 가져오기');
+      const response = await axios.get(`${API_BASE_URL}/api/neighborhoods`);
+      console.log('[API 응답] 동네 목록:', response.data);
+      setNeighborhoods(response.data);
     } catch (error) {
-      console.error('전체 데이터 로딩 중 오류 발생:', error);
-      if (isAxiosError(error)) {
-        console.error('응답 데이터:', error.response?.data);
-      }
+      console.error('[API 오류] 동네 목록 가져오기 실패:', error);
+      throw error;
     }
-  };
+  }, []);
 
   const fetchBuildingsByNeighborhood = useCallback(async (neighborhoodId: string) => {
     try {
@@ -104,14 +79,9 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const response = await api.get(`/api/buildings/neighborhood/${neighborhoodId}`);
       console.log('[건물 데이터 응답]', response.data);
       setBuildings(response.data);
-
-      // 해당 건물들의 호실 정보도 함께 가져옴
-      const buildingIds = response.data.map((building: Building) => building._id);
-      const roomsResponse = await api.get(`/api/rooms/buildings/${buildingIds.join(',')}`);
-      console.log('[호실 데이터 응답]', roomsResponse.data);
-      setRooms(roomsResponse.data);
     } catch (error) {
       console.error('건물 데이터 로딩 중 오류 발생:', error);
+      throw error;
     }
   }, []);
 
@@ -205,25 +175,22 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  return (
-    <DataContext.Provider
-      value={{
-        neighborhoods,
-        buildings,
-        rooms,
-        addNeighborhood,
-        deleteNeighborhood,
-        addBuilding,
-        deleteBuilding,
-        addRoom,
-        deleteRoom,
-        fetchBuildingsByNeighborhood,
-        fetchRoomsByBuilding
-      }}
-    >
-      {children}
-    </DataContext.Provider>
-  );
+  const value = {
+    neighborhoods,
+    buildings,
+    rooms,
+    addNeighborhood,
+    deleteNeighborhood,
+    addBuilding,
+    deleteBuilding,
+    addRoom,
+    deleteRoom,
+    fetchNeighborhoods,
+    fetchBuildingsByNeighborhood,
+    fetchRoomsByBuilding
+  };
+
+  return <DataContext.Provider value={value}>{children}</DataContext.Provider>;
 };
 
 export const useData = () => {
