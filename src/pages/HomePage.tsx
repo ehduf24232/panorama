@@ -77,7 +77,7 @@ const Title = styled.h1`
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
   
   @media (max-width: 768px) {
-    font-size: 2.5rem;
+    font-size: 3.75rem;
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
@@ -163,7 +163,8 @@ const HomePage = () => {
         </ConsultButton>
         <ContentWrapper>
           <Title>
-            <TitleLine>부동산 </TitleLine>
+            <TitleLine>부동산</TitleLine>
+            {" "}
             <TitleLine>파노라마</TitleLine>
           </Title>
           <Button onClick={() => navigate('/neighborhoods')}>
