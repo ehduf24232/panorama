@@ -170,7 +170,7 @@ const SubmitButton = styled.button`
 `;
 
 // API 기본 URL 설정
-const API_BASE_URL = 'http://localhost:5000/api';
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://panorama-backend.onrender.com/api';
 const api = axios.create({
   baseURL: API_BASE_URL
 });
@@ -196,19 +196,25 @@ const ConsultationPage: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await api.post('/consultations', formData);
-      alert('상담 신청이 완료되었습니다.');
-      setFormData({
-        name: '',
-        phone: '',
-        email: '',
-        interest: '',
-        budget: '',
-        message: ''
-      });
+      const response = await api.post('/consultations', formData);
+      if (response.status === 200 || response.status === 201) {
+        alert('상담 신청이 완료되었습니다. 곧 연락드리겠습니다.');
+        setFormData({
+          name: '',
+          phone: '',
+          email: '',
+          interest: '',
+          budget: '',
+          message: ''
+        });
+      }
     } catch (error) {
       console.error('상담 신청 중 오류가 발생했습니다:', error);
-      alert('상담 신청 중 오류가 발생했습니다. 다시 시도해주세요.');
+      if (axios.isAxiosError(error)) {
+        alert(error.response?.data?.message || '상담 신청 중 오류가 발생했습니다. 다시 시도해주세요.');
+      } else {
+        alert('상담 신청 중 오류가 발생했습니다. 다시 시도해주세요.');
+      }
     }
   };
 

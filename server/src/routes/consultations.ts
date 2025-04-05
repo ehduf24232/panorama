@@ -1,17 +1,33 @@
 import express from 'express';
 import Consultation from '../models/Consultation';
 import * as XLSX from 'xlsx';
+import mongoose from 'mongoose';
 
 const router = express.Router();
 
+// 상담 신청 생성
 router.post('/', async (req, res) => {
   try {
     const consultation = new Consultation(req.body);
     await consultation.save();
-    res.status(201).json({ message: '상담 신청이 완료되었습니다.' });
+    res.status(201).json({ message: '상담 신청이 성공적으로 저장되었습니다.' });
   } catch (error) {
     console.error('상담 신청 저장 중 오류:', error);
-    res.status(500).json({ message: '상담 신청 중 오류가 발생했습니다.' });
+    if (error instanceof mongoose.Error.ValidationError) {
+      return res.status(400).json({ message: '입력하신 정보를 다시 확인해주세요.' });
+    }
+    res.status(500).json({ message: '서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.' });
+  }
+});
+
+// 상담 신청 목록 조회 (관리자용)
+router.get('/', async (req, res) => {
+  try {
+    const consultations = await Consultation.find().sort({ createdAt: -1 });
+    res.json(consultations);
+  } catch (error) {
+    console.error('상담 신청 목록 조회 중 오류:', error);
+    res.status(500).json({ message: '서버 오류가 발생했습니다.' });
   }
 });
 
