@@ -25,6 +25,10 @@ const Container = styled.div`
   position: relative;
   overflow: hidden;
 
+  @media (max-width: 768px) {
+    padding: 4rem 1rem 2rem 1rem;
+  }
+
   &::before {
     content: '';
     position: absolute;
@@ -61,11 +65,10 @@ const Container = styled.div`
 `;
 
 const ContentWrapper = styled.div`
-  padding: 40px 20px 20px;
-  max-width: 1200px;
-  margin: 0 auto;
+  position: relative;
+  z-index: 1;
   width: 100%;
-  box-sizing: border-box;
+  max-width: 1200px;
 `;
 
 const Title = styled.h1`
