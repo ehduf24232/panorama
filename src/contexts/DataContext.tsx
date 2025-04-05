@@ -64,7 +64,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const fetchNeighborhoods = useCallback(async () => {
     try {
       console.log('[API 요청] 동네 목록 가져오기');
-      const response = await axios.get(`${API_BASE_URL}/api/neighborhoods`);
+      const response = await api.get('/api/neighborhoods');
       console.log('[API 응답] 동네 목록:', response.data);
       setNeighborhoods(response.data);
     } catch (error) {
