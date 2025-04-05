@@ -189,18 +189,27 @@ const RoomsPage = () => {
   const { buildingId } = useParams();
   const navigate = useNavigate();
   const [rooms, setRooms] = useState<Room[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchRooms = async () => {
       try {
+        setLoading(true);
+        setError(null);
         const response = await api.get(`/api/rooms/building/${buildingId}`);
         setRooms(response.data);
       } catch (error) {
         console.error('방 목록을 불러오는데 실패했습니다:', error);
+        setError('방 목록을 불러오는데 실패했습니다. 잠시 후 다시 시도해주세요.');
+      } finally {
+        setLoading(false);
       }
     };
 
-    fetchRooms();
+    if (buildingId) {
+      fetchRooms();
+    }
   }, [buildingId]);
 
   const handleConsultClick = () => {
@@ -219,27 +228,35 @@ const RoomsPage = () => {
         </ConsultButton>
         <ContentWrapper>
           <Title>호실을 선택해주세요</Title>
-          <RoomGrid>
-            {rooms.map((room) => (
-              <RoomCard
-                key={room._id}
-                onClick={() => navigate(`/rooms/${room._id}/panorama`)}
-              >
-                <RoomImage
-                  src={`${API_BASE_URL}${room.imageUrl}`}
-                  alt={room.name}
-                  onError={(e) => {
-                    console.error('이미지 로드 실패:', room.name);
-                    (e.target as HTMLImageElement).src = '/placeholder.png';
-                  }}
-                />
-                <RoomInfo>
-                  <RoomName>{room.name}</RoomName>
-                  <RoomDescription>{room.description}</RoomDescription>
-                </RoomInfo>
-              </RoomCard>
-            ))}
-          </RoomGrid>
+          {loading ? (
+            <div style={{ textAlign: 'center', color: 'white', marginTop: '2rem' }}>로딩 중...</div>
+          ) : error ? (
+            <div style={{ textAlign: 'center', color: 'white', marginTop: '2rem' }}>{error}</div>
+          ) : rooms.length === 0 ? (
+            <div style={{ textAlign: 'center', color: 'white', marginTop: '2rem' }}>등록된 호실이 없습니다.</div>
+          ) : (
+            <RoomGrid>
+              {rooms.map((room) => (
+                <RoomCard
+                  key={room._id}
+                  onClick={() => navigate(`/rooms/${room._id}/panorama`)}
+                >
+                  <RoomImage
+                    src={`${API_BASE_URL}${room.imageUrl}`}
+                    alt={room.name}
+                    onError={(e) => {
+                      console.error('이미지 로드 실패:', room.name);
+                      (e.target as HTMLImageElement).src = '/placeholder.png';
+                    }}
+                  />
+                  <RoomInfo>
+                    <RoomName>{room.name}</RoomName>
+                    <RoomDescription>{room.description}</RoomDescription>
+                  </RoomInfo>
+                </RoomCard>
+              ))}
+            </RoomGrid>
+          )}
         </ContentWrapper>
       </Container>
     </>

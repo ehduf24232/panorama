@@ -8,7 +8,8 @@ const api = axios.create({
   withCredentials: true,
   headers: {
     'Content-Type': 'application/json'
-  }
+  },
+  timeout: 10000 // 10초 타임아웃 설정
 });
 
 // 요청 인터셉터 추가
@@ -21,6 +22,7 @@ api.interceptors.request.use(
     return config;
   },
   (error) => {
+    console.error('API 요청 오류:', error);
     return Promise.reject(error);
   }
 );
@@ -33,6 +35,10 @@ api.interceptors.response.use(
     if (error.response) {
       console.error('응답 데이터:', error.response.data);
       console.error('응답 상태:', error.response.status);
+    } else if (error.request) {
+      console.error('요청 오류:', error.request);
+    } else {
+      console.error('오류 메시지:', error.message);
     }
     return Promise.reject(error);
   }

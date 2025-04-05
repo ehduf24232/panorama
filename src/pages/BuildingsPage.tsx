@@ -192,18 +192,27 @@ const BuildingsPage = () => {
   const { neighborhoodId } = useParams();
   const navigate = useNavigate();
   const [buildings, setBuildings] = useState<Building[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchBuildings = async () => {
       try {
+        setLoading(true);
+        setError(null);
         const response = await api.get(`/api/buildings/neighborhood/${neighborhoodId}`);
         setBuildings(response.data);
       } catch (error) {
         console.error('건물 목록을 불러오는데 실패했습니다:', error);
+        setError('건물 목록을 불러오는데 실패했습니다. 잠시 후 다시 시도해주세요.');
+      } finally {
+        setLoading(false);
       }
     };
 
-    fetchBuildings();
+    if (neighborhoodId) {
+      fetchBuildings();
+    }
   }, [neighborhoodId]);
 
   const handleConsultClick = () => {
@@ -222,27 +231,35 @@ const BuildingsPage = () => {
         </ConsultButton>
         <ContentWrapper>
           <Title>건물을 선택해주세요</Title>
-          <BuildingGrid>
-            {buildings.map((building) => (
-              <BuildingCard
-                key={building._id}
-                onClick={() => navigate(`/neighborhoods/${neighborhoodId}/buildings/${building._id}/rooms`)}
-              >
-                <BuildingImage
-                  src={`${API_BASE_URL}${building.imageUrl}`}
-                  alt={building.name}
-                  onError={(e) => {
-                    console.error('이미지 로드 실패:', building.name);
-                    (e.target as HTMLImageElement).src = '/placeholder.png';
-                  }}
-                />
-                <BuildingInfo>
-                  <BuildingName>{building.name}</BuildingName>
-                  <BuildingDescription>{building.description}</BuildingDescription>
-                </BuildingInfo>
-              </BuildingCard>
-            ))}
-          </BuildingGrid>
+          {loading ? (
+            <div style={{ textAlign: 'center', color: 'white', marginTop: '2rem' }}>로딩 중...</div>
+          ) : error ? (
+            <div style={{ textAlign: 'center', color: 'white', marginTop: '2rem' }}>{error}</div>
+          ) : buildings.length === 0 ? (
+            <div style={{ textAlign: 'center', color: 'white', marginTop: '2rem' }}>등록된 건물이 없습니다.</div>
+          ) : (
+            <BuildingGrid>
+              {buildings.map((building) => (
+                <BuildingCard
+                  key={building._id}
+                  onClick={() => navigate(`/neighborhoods/${neighborhoodId}/buildings/${building._id}/rooms`)}
+                >
+                  <BuildingImage
+                    src={`${API_BASE_URL}${building.imageUrl}`}
+                    alt={building.name}
+                    onError={(e) => {
+                      console.error('이미지 로드 실패:', building.name);
+                      (e.target as HTMLImageElement).src = '/placeholder.png';
+                    }}
+                  />
+                  <BuildingInfo>
+                    <BuildingName>{building.name}</BuildingName>
+                    <BuildingDescription>{building.description}</BuildingDescription>
+                  </BuildingInfo>
+                </BuildingCard>
+              ))}
+            </BuildingGrid>
+          )}
         </ContentWrapper>
       </Container>
     </>
