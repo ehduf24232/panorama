@@ -246,14 +246,13 @@ const ConsultationPage: React.FC = () => {
             </FormGroup>
 
             <FormGroup>
-              <Label htmlFor="email">이메일</Label>
+              <Label htmlFor="email">이메일(선택)</Label>
               <Input
                 type="email"
                 id="email"
                 name="email"
                 value={formData.email}
                 onChange={handleChange}
-                required
               />
             </FormGroup>
 
