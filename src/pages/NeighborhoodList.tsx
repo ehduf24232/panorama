@@ -1,11 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import styled, { createGlobalStyle } from 'styled-components';
 import { Chat as ChatIcon } from '@mui/icons-material';
-import axios from 'axios';
 import CustomLinkButton from '../components/CustomLinkButton';
 import { Link } from 'react-router-dom';
 import HomeButton from '../components/HomeButton';
-import api from '../api';
+import { useData } from '../contexts/DataContext';
 
 // API 기본 URL 설정
 const API_BASE_URL = process.env.NODE_ENV === 'production'
@@ -185,20 +184,26 @@ interface Neighborhood {
 }
 
 const NeighborhoodList = () => {
-  const [neighborhoods, setNeighborhoods] = useState<Neighborhood[]>([]);
+  const { neighborhoods, fetchNeighborhoods } = useData();
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchNeighborhoods = async () => {
+    const loadNeighborhoods = async () => {
       try {
-        const response = await api.get('/api/neighborhoods');
-        setNeighborhoods(response.data);
+        setLoading(true);
+        setError(null);
+        await fetchNeighborhoods();
       } catch (error) {
         console.error('동네 목록을 불러오는데 실패했습니다:', error);
+        setError('동네 목록을 불러오는데 실패했습니다. 잠시 후 다시 시도해주세요.');
+      } finally {
+        setLoading(false);
       }
     };
 
-    fetchNeighborhoods();
-  }, []);
+    loadNeighborhoods();
+  }, [fetchNeighborhoods]);
 
   const handleConsultClick = () => {
     window.location.href = '/consultation';
@@ -215,24 +220,32 @@ const NeighborhoodList = () => {
           상담신청
         </ConsultButton>
         <CustomLinkButton />
-        <NeighborhoodGrid>
-          {neighborhoods.map((neighborhood) => (
-            <NeighborhoodCard key={neighborhood._id} to={`/neighborhoods/${neighborhood._id}/buildings`}>
-              <NeighborhoodImage 
-                src={`${API_BASE_URL}${neighborhood.imageUrl}`} 
-                alt={neighborhood.name}
-                onError={(e) => {
-                  console.error('이미지 로드 실패:', neighborhood.name);
-                  (e.target as HTMLImageElement).src = '/placeholder.png';
-                }}
-              />
-              <NeighborhoodInfo>
-                <NeighborhoodName>{neighborhood.name}</NeighborhoodName>
-                <NeighborhoodDescription>{neighborhood.description}</NeighborhoodDescription>
-              </NeighborhoodInfo>
-            </NeighborhoodCard>
-          ))}
-        </NeighborhoodGrid>
+        {loading ? (
+          <div style={{ textAlign: 'center', color: 'white', marginTop: '2rem' }}>로딩 중...</div>
+        ) : error ? (
+          <div style={{ textAlign: 'center', color: 'white', marginTop: '2rem' }}>{error}</div>
+        ) : neighborhoods.length === 0 ? (
+          <div style={{ textAlign: 'center', color: 'white', marginTop: '2rem' }}>등록된 동네가 없습니다.</div>
+        ) : (
+          <NeighborhoodGrid>
+            {neighborhoods.map((neighborhood) => (
+              <NeighborhoodCard key={neighborhood._id} to={`/neighborhoods/${neighborhood._id}/buildings`}>
+                <NeighborhoodImage 
+                  src={`${API_BASE_URL}${neighborhood.imageUrl}`} 
+                  alt={neighborhood.name}
+                  onError={(e) => {
+                    console.error('이미지 로드 실패:', neighborhood.name);
+                    (e.target as HTMLImageElement).src = '/placeholder.png';
+                  }}
+                />
+                <NeighborhoodInfo>
+                  <NeighborhoodName>{neighborhood.name}</NeighborhoodName>
+                  <NeighborhoodDescription>{neighborhood.description}</NeighborhoodDescription>
+                </NeighborhoodInfo>
+              </NeighborhoodCard>
+            ))}
+          </NeighborhoodGrid>
+        )}
       </Container>
     </>
   );
