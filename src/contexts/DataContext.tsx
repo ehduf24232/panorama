@@ -47,6 +47,7 @@ interface DataContextType {
   addRoom: (formData: FormData) => Promise<void>;
   deleteRoom: (id: string) => Promise<void>;
   fetchBuildingsByNeighborhood: (neighborhoodId: string) => Promise<void>;
+  fetchRoomsByBuilding: (buildingId: string) => Promise<void>;
 }
 
 const DataContext = createContext<DataContextType | undefined>(undefined);
@@ -111,6 +112,18 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setRooms(roomsResponse.data);
     } catch (error) {
       console.error('건물 데이터 로딩 중 오류 발생:', error);
+    }
+  }, []);
+
+  const fetchRoomsByBuilding = useCallback(async (buildingId: string) => {
+    try {
+      console.log('[호실 데이터 요청]', { buildingId });
+      const response = await api.get(`/api/rooms/building/${buildingId}`);
+      console.log('[호실 데이터 응답]', response.data);
+      setRooms(response.data);
+    } catch (error) {
+      console.error('호실 데이터 로딩 중 오류 발생:', error);
+      throw error;
     }
   }, []);
 
@@ -204,7 +217,8 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         deleteBuilding,
         addRoom,
         deleteRoom,
-        fetchBuildingsByNeighborhood
+        fetchBuildingsByNeighborhood,
+        fetchRoomsByBuilding
       }}
     >
       {children}

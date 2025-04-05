@@ -4,7 +4,7 @@ import styled, { createGlobalStyle } from 'styled-components';
 import { Chat as ChatIcon } from '@mui/icons-material';
 import HomeButton from '../components/HomeButton';
 import CustomLinkButton from '../components/CustomLinkButton';
-import api from '../api';
+import { useData } from '../contexts/DataContext';
 
 // API_BASE_URL 가져오기
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://panorama-backend.onrender.com';
@@ -188,17 +188,22 @@ interface Room {
 const RoomsPage = () => {
   const { buildingId } = useParams();
   const navigate = useNavigate();
-  const [rooms, setRooms] = useState<Room[]>([]);
+  const { rooms, fetchRoomsByBuilding } = useData();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchRooms = async () => {
+    const loadRooms = async () => {
+      if (!buildingId) {
+        setError('건물 ID가 없습니다.');
+        setLoading(false);
+        return;
+      }
+
       try {
         setLoading(true);
         setError(null);
-        const response = await api.get(`/api/rooms/building/${buildingId}`);
-        setRooms(response.data);
+        await fetchRoomsByBuilding(buildingId);
       } catch (error) {
         console.error('방 목록을 불러오는데 실패했습니다:', error);
         setError('방 목록을 불러오는데 실패했습니다. 잠시 후 다시 시도해주세요.');
@@ -207,10 +212,8 @@ const RoomsPage = () => {
       }
     };
 
-    if (buildingId) {
-      fetchRooms();
-    }
-  }, [buildingId]);
+    loadRooms();
+  }, [buildingId, fetchRoomsByBuilding]);
 
   const handleConsultClick = () => {
     window.location.href = '/consultation';
