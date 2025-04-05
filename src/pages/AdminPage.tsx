@@ -584,7 +584,7 @@ const AdminPage: React.FC = () => {
 
   const handleDownloadExcel = async () => {
     try {
-      const response = await axios.get(`${API_BASE_URL}/consultations/export-excel`, {
+      const response = await api.get('/api/consultations/export-excel', {
         responseType: 'blob'
       });
       
