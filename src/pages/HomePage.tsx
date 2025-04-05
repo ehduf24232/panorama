@@ -168,7 +168,7 @@ const HomePage = () => {
             <TitleLine>파노라마</TitleLine>
           </Title>
           <Button onClick={() => navigate('/neighborhoods')}>
-            매물 보러가기
+            보러가기
           </Button>
         </ContentWrapper>
       </Container>
