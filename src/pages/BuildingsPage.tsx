@@ -196,28 +196,25 @@ const BuildingsPage = () => {
 
   useEffect(() => {
     const loadBuildings = async () => {
-      if (!neighborhoodId) {
-        console.error('동네 ID가 없습니다.');
-        setError('동네 ID가 없습니다.');
-        setLoading(false);
-        return;
-      }
-
       try {
-        console.log('건물 목록 로딩 시작:', neighborhoodId);
         setLoading(true);
         setError(null);
+        
+        if (!neighborhoodId) {
+          throw new Error('동네 ID가 없습니다.');
+        }
+
+        console.log('건물 목록 로딩 시작:', neighborhoodId);
         await fetchBuildingsByNeighborhood(neighborhoodId);
         console.log('건물 목록 로딩 완료:', buildings);
       } catch (error) {
         console.error('건물 목록을 불러오는데 실패했습니다:', error);
-        setError('건물 목록을 불러오는데 실패했습니다. 잠시 후 다시 시도해주세요.');
+        setError(error instanceof Error ? error.message : '건물 목록을 불러오는데 실패했습니다. 잠시 후 다시 시도해주세요.');
       } finally {
         setLoading(false);
       }
     };
 
-    console.log('BuildingsPage 마운트, neighborhoodId:', neighborhoodId);
     loadBuildings();
   }, [neighborhoodId, fetchBuildingsByNeighborhood]);
 

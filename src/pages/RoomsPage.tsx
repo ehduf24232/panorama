@@ -194,28 +194,25 @@ const RoomsPage = () => {
 
   useEffect(() => {
     const loadRooms = async () => {
-      if (!buildingId) {
-        console.error('건물 ID가 없습니다.');
-        setError('건물 ID가 없습니다.');
-        setLoading(false);
-        return;
-      }
-
       try {
-        console.log('방 목록 로딩 시작:', buildingId);
         setLoading(true);
         setError(null);
+        
+        if (!buildingId) {
+          throw new Error('건물 ID가 없습니다.');
+        }
+
+        console.log('방 목록 로딩 시작:', buildingId);
         await fetchRoomsByBuilding(buildingId);
         console.log('방 목록 로딩 완료:', rooms);
       } catch (error) {
         console.error('방 목록을 불러오는데 실패했습니다:', error);
-        setError('방 목록을 불러오는데 실패했습니다. 잠시 후 다시 시도해주세요.');
+        setError(error instanceof Error ? error.message : '방 목록을 불러오는데 실패했습니다. 잠시 후 다시 시도해주세요.');
       } finally {
         setLoading(false);
       }
     };
 
-    console.log('RoomsPage 마운트, buildingId:', buildingId);
     loadRooms();
   }, [buildingId, fetchRoomsByBuilding]);
 
