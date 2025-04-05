@@ -163,7 +163,7 @@ const HomePage = () => {
         </ConsultButton>
         <ContentWrapper>
           <Title>
-            <TitleLine>부동산</TitleLine>
+            <TitleLine>부동산 </TitleLine>
             <TitleLine>파노라마</TitleLine>
           </Title>
           <Button onClick={() => navigate('/neighborhoods')}>
