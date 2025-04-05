@@ -107,6 +107,15 @@ const PanoramaSelector = styled.div`
   letter-spacing: -0.01em;
   opacity: 0.8;
   transition: opacity 0.3s ease;
+  max-width: 90%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  
+  &::-webkit-scrollbar {
+    display: none;
+  }
   
   &:hover {
     opacity: 1;
@@ -114,8 +123,9 @@ const PanoramaSelector = styled.div`
 
   @media (max-width: 768px) {
     bottom: 70px;
-    font-size: 13px;
-    padding: 10px 20px;
+    font-size: 12px;
+    padding: 8px 16px;
+    gap: 4px;
   }
 `;
 
@@ -131,6 +141,8 @@ const PanoramaButton = styled.button<{ isActive?: boolean }>`
   margin: 0 4px;
   -webkit-tap-highlight-color: transparent;
   touch-action: manipulation;
+  white-space: nowrap;
+  flex-shrink: 0;
 
   &:hover {
     background: rgba(255, 255, 255, 0.1);
@@ -141,8 +153,9 @@ const PanoramaButton = styled.button<{ isActive?: boolean }>`
   }
 
   @media (max-width: 768px) {
-    padding: 8px 16px;
-    font-size: 14px;
+    padding: 6px 10px;
+    font-size: 12px;
+    margin: 0 2px;
   }
 `;
 
