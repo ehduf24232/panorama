@@ -174,9 +174,9 @@ const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://panorama-backend.
 const api = axios.create({
   baseURL: API_BASE_URL,
   headers: {
-    'Content-Type': 'application/json',
-    'Access-Control-Allow-Origin': '*'
-  }
+    'Content-Type': 'application/json'
+  },
+  withCredentials: false
 });
 
 const ConsultationPage: React.FC = () => {
@@ -200,7 +200,11 @@ const ConsultationPage: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const response = await api.post('/api/consultations', formData);
+      const response = await api.post('/api/consultations', formData, {
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
       if (response.status === 200 || response.status === 201) {
         alert('상담 신청이 완료되었습니다. 곧 연락드리겠습니다.');
         setFormData({

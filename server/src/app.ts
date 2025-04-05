@@ -10,11 +10,19 @@ import path from 'path';
 const app = express();
 
 // CORS 설정
-app.use(cors({
+const corsOptions = {
   origin: ['https://realestate-panorama.netlify.app', 'http://localhost:3000'],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
-}));
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: false,
+  preflightContinue: false,
+  optionsSuccessStatus: 204
+};
+
+app.use(cors(corsOptions));
+
+// OPTIONS 요청에 대한 처리
+app.options('*', cors(corsOptions));
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));

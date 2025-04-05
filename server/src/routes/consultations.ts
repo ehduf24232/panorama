@@ -8,6 +8,11 @@ const router = express.Router();
 // 상담 신청 생성
 router.post('/', async (req, res) => {
   try {
+    // CORS 헤더 설정
+    res.header('Access-Control-Allow-Origin', 'https://realestate-panorama.netlify.app');
+    res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+
     const consultation = new Consultation(req.body);
     await consultation.save();
     res.status(201).json({ message: '상담 신청이 성공적으로 저장되었습니다.' });
@@ -23,6 +28,11 @@ router.post('/', async (req, res) => {
 // 상담 신청 목록 조회 (관리자용)
 router.get('/', async (req, res) => {
   try {
+    // CORS 헤더 설정
+    res.header('Access-Control-Allow-Origin', 'https://realestate-panorama.netlify.app');
+    res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+
     const consultations = await Consultation.find().sort({ createdAt: -1 });
     res.json(consultations);
   } catch (error) {
